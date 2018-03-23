@@ -42,25 +42,32 @@ class Database:
         self.passwrod = dbConfig['password']
         self.dbname = dbConfig['dbname']
 
-
+        # way to connect to mysql with pymysql
         if self.dbconfig['mode'] == 1:
             self.con = pymysql.connect(host='%s' % self.host, user='%s' % self.user,
                                        password='%s' % self.passwrod, charset="utf8")
 
+        # way to connect to sqlserver with pyodbc
         elif self.dbconfig['mode'] == 2:
             self.con = pyodbc.connect(
                 'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
                 self.host, self.dbname, self.user, self.passwrod))
 
+        # way to connect to sqlserver with pymssql
         else:
             self.con = pymssql.connect(server='%s'% self.host, user='%s' % self.user,
                                         password='%s' % self.passwrod, database='%s' % self.dbname)
 
         self.cur = self.con.cursor()
 
+
     @classmethod
     def build(cls,dbname,tbname, data, mode):
+        """
+           This method is mainly designed to build up sql sentence, with extra value which has to satisfy the grammar of each module that imported
 
+           @:param see method "insert"
+       """
         # field = list(sorted(data.keys(), key=lambda x: x[0]))
         field = list(data.keys())
         value = [str(data[x]) for x in field]
@@ -78,6 +85,7 @@ class Database:
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 (len(field) * '?,')[:-1])
             return sql, value
+
         # sql for pymssql, with params of type tuple
         else:
             sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
@@ -92,7 +100,7 @@ class Database:
 
         :param dbname       :          name of database
         :param tbname       :          name of table
-        :param data         :          data you that want to insert into, type dict
+        :param data         :          data you that want to insert into, type dict or list with dicts
         :param mode         :          mode, different mode leads to different database system
 
         If mode == 1, the insert sql looks like :
@@ -110,11 +118,13 @@ class Database:
         if mode is None:
             mode = self.mode
 
+        # type dict
         if type(data) == dict:
             result = self.build(dbname,tbname, data, mode)
             self.cur.execute(result[0], result[1])
             self.con.commit()
 
+        # type list with dict
         if type(data) == list:
             for m_data in data:
                 result = self.build(dbname, tbname, m_data, mode)
