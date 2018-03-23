@@ -36,25 +36,30 @@ class Database:
 
     def __init__(self, dbConfig):
         self.dbconfig = dbConfig
-        self.dbconfig['mode'] == int(self.dbconfig['mode'])
+        self.mode = int(dbConfig['mode'])
+        self.host = dbConfig['host']
+        self.user = dbConfig['user']
+        self.passwrod = dbConfig['password']
+        self.dbname = dbConfig['dbname']
+
 
         if self.dbconfig['mode'] == 1:
-            self.con = pymysql.connect(host='%s' % self.dbconfig['host'], user='%s' % self.dbconfig['user'],
-                                       password='%s' % self.dbconfig['password'], charset="utf8")
+            self.con = pymysql.connect(host='%s' % self.host, user='%s' % self.user,
+                                       password='%s' % self.passwrod, charset="utf8")
 
         elif self.dbconfig['mode'] == 2:
             self.con = pyodbc.connect(
                 'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
-                self.dbconfig['host'], self.dbconfig['dbname'], self.dbconfig['user'], self.dbconfig['password']))
+                self.host, self.dbname, self.user, self.passwrod))
 
         else:
-            self.con = pymssql.connect(server='%s'% self.dbconfig['host'], user='%s' % self.dbconfig['user'],
-                                        password='%s' % self.dbconfig['password'], database='%s' % self.dbconfig['dbname'])
+            self.con = pymssql.connect(server='%s'% self.host, user='%s' % self.user,
+                                        password='%s' % self.passwrod, database='%s' % self.dbname)
 
         self.cur = self.con.cursor()
 
-    @staticmethod
-    def build(mode, data):
+    @classmethod
+    def build(cls,dbname,tbname, data, mode):
 
         # field = list(sorted(data.keys(), key=lambda x: x[0]))
         field = list(data.keys())
@@ -65,21 +70,23 @@ class Database:
             sql = """insert into %s.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 '%(' + ('-'.join(field)).replace('-', ')s,%(') + ')s')
+            return sql, data
 
         # sql for pyodbc, with params of type list
         elif mode == 2:
             sql = """insert into %s.dbo.%s (%s) values (%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 (len(field) * '?,')[:-1])
+            return sql, value
         # sql for pymssql, with params of type tuple
         else:
             sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 str('%s,' * len(field))[0:-1])
+            return sql, tuple(value)
 
-        return sql
 
-    def insert(self,dbname,tbname,data,mode=2):
+    def insert(self,dbname,tbname,data,mode=None):
         """
         This methed support some convenient ways for you to insert your data into database.
 
@@ -100,17 +107,19 @@ class Database:
         And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
 
         """
+        if mode is None:
+            mode = self.mode
 
         if type(data) == dict:
-            sql = build(mode, data)
-            self.cur.execute(sql, data)
-            self.cur.commit()
+            result = self.build(dbname,tbname, data, mode)
+            self.cur.execute(result[0], result[1])
+            self.con.commit()
 
         if type(data) == list:
             for m_data in data:
-                sql = build(mode, data)
-                self.cur.execute(sql, data)
-                self.cur.commit()
+                result = self.build(dbname, tbname, m_data, mode)
+                self.cur.execute(result[0], result[1])
+                self.con.commit()
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)

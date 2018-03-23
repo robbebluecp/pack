@@ -1,8 +1,7 @@
 import urllib.request
 import time
-import pthread
 import random
-import log
+from mypackage import log
 import gzip
 import http.client
 import urllib.error
