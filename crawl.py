@@ -69,8 +69,9 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
 
                 # get and feed the ip pools by programme automatically with a single thread
                 if not proxyConfig:
-                    proxy = random.choice(pthread.proxyList)
-                    proxyData = 'http://' + proxy
+                    # proxy = random.choice(pthread.proxyList)
+                    # proxyData = 'http://' + proxy
+                    pass
 
                 else:
                     # proxyConfig = {'type': 1, 'proxyInfo': [your ips,type list]}
@@ -91,9 +92,12 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
                                                                                  'host': host, 'port': port}
                 proxyHandler = urllib.request.ProxyHandler({protocol: proxyData})
                 opener = urllib.request.build_opener(proxyHandler)
+
             else:
                 opener = urllib.request.build_opener()
 
+            headers = list(zip(list(urlConfig_.keys()), [urlConfig_[x] for x in list(urlConfig_.keys())]))
+            opener.addheaders = headers
 
             try:
                 rawHtml = opener.open(url, timeout=crawlConfig_['timeout'])
