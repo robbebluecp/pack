@@ -84,10 +84,10 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
                     if str(proxyConfig['type']) == '2':  # abuyun代理
                         proxyInfo = proxyConfig['proxyInfo']
                         proxy = random.choice(proxyInfo)
-                        user = proxyInfo['user']
-                        password = proxyInfo['password']
-                        host = proxyConfig['host']
-                        port = proxyInfo['port']
+                        user = proxy['user']
+                        password = proxy['password']
+                        host = proxy['host']
+                        port = proxy['port']
                         proxyData = '%(user)s:%(password)s@%(host)s:%(port)s' % {'user': user, 'password': password,
                                                                                  'host': host, 'port': port}
                 proxyHandler = urllib.request.ProxyHandler({protocol: proxyData})
