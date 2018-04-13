@@ -20,7 +20,7 @@ warningFilter.filter = lambda level: 30 <= level.levelno <= 30
 errorFilter.filter = lambda level: 40 <= level.levelno <= 40
 criticalFilter.filter = lambda level: 50 <= level.levelno <= 50
 
-warningOperation = RotatingFileHandler(path + 'Z_ExWarning.log', maxBytes=1 * 1024 * 1024, backupCount=5)
+warningOperation = RotatingFileHandler(path + 'Z_ExWarning.log', maxBytes=5 * 1024 * 1024, backupCount=1)
 warningOperation.addFilter(warningFilter)
 warningFormat = logging.Formatter('%(asctime)s %(filename)s %(levelname)s %(message)s')
 warningOperation.setFormatter(warningFormat)
@@ -30,7 +30,7 @@ errorOperation.addFilter(errorFilter)
 errorFormat = logging.Formatter('%(asctime)s %(filename)s %(levelname)s %(message)s')
 errorOperation.setFormatter(errorFormat)
 
-criticalOperation = RotatingFileHandler(path + 'Z_ExCritical.log', maxBytes=2 * 1024 * 1024, backupCount=5)
+criticalOperation = RotatingFileHandler(path + 'Z_ExCritical.log', maxBytes=5 * 1024 * 1024, backupCount=2)
 criticalOperation.addFilter(criticalFilter)
 criticalFormat = logging.Formatter('%(asctime)s %(filename)s %(levelname)s %(message)s')
 criticalOperation.setFormatter(criticalFormat)
