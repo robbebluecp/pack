@@ -82,7 +82,7 @@ class Database:
         # sql for pyodbc, with params of type list
         elif mode == 2:
             sql = """insert into %s.dbo.%s (%s) values (%s)""" % (
-                dbname, tbname, str(field)[1:-1].replace("'", ''),
+                dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
                 (len(field) * '?,')[:-1])
             return sql, value
 
