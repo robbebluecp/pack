@@ -3,7 +3,7 @@ This repository contains some packages of python designed by myself
 1、database
 
 PS：This module support 3 ways to insert data to sqlserver or mysql,it supported by "pyodbc" or "pymssql" or "pymysql".
-    FOR detail you'd better see take a look at my source code.
+    FOR detail please take a look at source code.
     
 2、crawl
 
