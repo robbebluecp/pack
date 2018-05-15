@@ -14,6 +14,42 @@ except:
     print('module "pymssql" is not avalable for your recent system circustance')
     pass
 
+def getCon(dbConfig):
+    """
+    Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
+
+    :param host         :       the server name or ip of your database system
+    :param user         :       user's login name or id ect
+    :param password     :       your password
+    :param dbname       :       database name that you want to use
+    :param mode         :       the way you choose to use to connect to database system
+                                1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
+
+    So the dbConfig should looks like :
+
+        dbConfig = {'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
+    """
+    mode = int(dbConfig['mode'])
+    host = dbConfig['host']
+    user = dbConfig['user']
+    passwrod = dbConfig['password']
+    dbname = dbConfig['dbname']
+    # way to connect to mysql with pymysql
+    if mode == 1:
+        con = pymysql.connect(host='%s' % host, user='%s' % user,
+                              password='%s' % passwrod, charset="utf8")
+
+    # way to connect to sqlserver with pyodbc
+    elif mode == 2:
+        con = pyodbc.connect(
+            'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
+                host, dbname, user, passwrod))
+
+    # way to connect to sqlserver with pymssql
+    else:
+        con = pymssql.connect(server='%s' % host, user='%s' % user,
+                              password='%s' % passwrod, database='%s' % dbname)
+    return con
 
 class Database:
     """
@@ -35,34 +71,11 @@ class Database:
     """
 
     def __init__(self, dbConfig):
-        self.dbconfig = dbConfig
-        self.mode = int(dbConfig['mode'])
-        self.host = dbConfig['host']
-        self.user = dbConfig['user']
-        self.passwrod = dbConfig['password']
-        self.dbname = dbConfig['dbname']
-
-        # way to connect to mysql with pymysql
-        if self.dbconfig['mode'] == 1:
-            self.con = pymysql.connect(host='%s' % self.host, user='%s' % self.user,
-                                       password='%s' % self.passwrod, charset="utf8")
-
-        # way to connect to sqlserver with pyodbc
-        elif self.dbconfig['mode'] == 2:
-            self.con = pyodbc.connect(
-                'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
-                self.host, self.dbname, self.user, self.passwrod))
-
-        # way to connect to sqlserver with pymssql
-        else:
-            self.con = pymssql.connect(server='%s'% self.host, user='%s' % self.user,
-                                        password='%s' % self.passwrod, database='%s' % self.dbname)
-
+        self.dbConfig = dbConfig
+        self.con = getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
-
-    @classmethod
-    def build(cls,dbname,tbname, data, mode):
+    def build(self,dbname,tbname, data, mode):
         """
            This method is mainly designed to build up sql sentence, with extra value which has to satisfy the grammar of each module that imported
 
@@ -92,7 +105,6 @@ class Database:
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 str('%s,' * len(field))[0:-1])
             return sql, tuple(value)
-
 
     def insert(self,dbname,tbname,data,mode=None):
         """
