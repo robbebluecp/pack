@@ -33,11 +33,13 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
     :return: 
     """
 
+
     # default headers
     urlConfig_ = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0',
                   'Referer': '',
                   'Host': '',
-                  'Cookie': ''}
+                  'Cookie': '',
+                  'Upgrade-Insecure-Request': ''}
 
     # default crawl config or settings
     crawlConfig_ = {'timeout': timeout,
@@ -52,6 +54,7 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
     if not urlConfig:
         urlConfig_.update(
             {x.replace('_', '-'): kwargs[x] for x in kwargs if 65 <= ord(str(x)[0]) <= 90 and kwargs[x] != ''})
+
     else:
         urlConfig_.update({x: urlConfig[x] for x in urlConfig if 65 <= ord(str(x)[0]) <= 90 and urlConfig[x] != ''})
 
@@ -120,8 +123,8 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
                 log.error('URLError, URL:%s, ERROR:%s' % (url, e))
             except Exception as e:
                 log.error('Other Error, URL:%s, ERROR:%s'% (url, e))
-            log.error('Index is over than %s times,crawl fail, URL;%s' % (crawlConfig_['maxtime'], url))
-            return None
         except Exception as e:
             log.critical('...', e)
-            return None
+
+    log.error('Index is over than %s times,crawl fail, URL;%s' % (crawlConfig_['maxtime'], url))
+    return None
