@@ -128,7 +128,7 @@ class Database:
 
         """
         if mode is None:
-            mode = self.mode
+            mode = self.dbConfig['mode']
 
         # type dict
         if type(data) == dict:
