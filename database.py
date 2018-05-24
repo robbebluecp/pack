@@ -25,7 +25,7 @@ def getCon(dbConfig):
     :param mode         :       the way you choose to use to connect to database system
                                 1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
 
-    So the dbConfig should looks like :
+    So the dbConfig should look like :
 
         dbConfig = {'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
