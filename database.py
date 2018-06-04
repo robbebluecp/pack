@@ -27,7 +27,7 @@ def getCon(dbConfig):
 
     So the dbConfig should look like :
 
-        dbConfig = {'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
+        dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
     mode = int(dbConfig['mode'])
     host = dbConfig['host']
@@ -66,7 +66,7 @@ class Database:
 
     So the dbConfig should looks like :
 
-        dbConfig = {'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
+        dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
 
     """
 
