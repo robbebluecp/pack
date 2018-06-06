@@ -39,7 +39,7 @@ def crawl(url, timeout=5, encoding='utf8', maxtime=5, isProxy=False, proxyConfig
                   'Referer': '',
                   'Host': '',
                   'Cookie': '',
-                  'Upgrade-Insecure-Request': ''}
+                  'Upgrade-Insecure-Request': 1}
 
     # default crawl config or settings
     crawlConfig_ = {'timeout': timeout,
