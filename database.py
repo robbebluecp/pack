@@ -17,16 +17,13 @@ except:
 def getCon(dbConfig):
     """
     Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
-
     :param host         :       the server name or ip of your database system
     :param user         :       user's login name or id ect
     :param password     :       your password
     :param dbname       :       database name that you want to use
     :param mode         :       the way you choose to use to connect to database system
                                 1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-
     So the dbConfig should look like :
-
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
     mode = int(dbConfig['mode'])
@@ -56,18 +53,14 @@ class Database:
     This class support three ways to connect to database system.
     At first you have to get one of these packages : pymysql, pyodbc, pymssql.
     Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
-
     :param host         :       the server name or ip of your database system
     :param user         :       user's login name or id ect
     :param password     :       your password
     :param dbname       :       database name that you want to use
     :param mode         :       the way you choose to use to connect to database system
                                 1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-
     So the dbConfig should looks like :
-
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
-
     """
 
     def __init__(self, dbConfig):
@@ -78,7 +71,6 @@ class Database:
     def build(self,dbname,tbname, data, mode):
         """
            This method is mainly designed to build up sql sentence, with extra value which has to satisfy the grammar of each module that imported
-
            @:param see method "insert"
        """
         # field = list(sorted(data.keys(), key=lambda x: x[0]))
@@ -109,23 +101,17 @@ class Database:
     def insert(self,dbname,tbname,data,mode=None):
         """
         This methed support some convenient ways for you to insert your data into database.
-
         :param dbname       :          name of database
         :param tbname       :          name of table
         :param data         :          data you that want to insert into, type dict or list with dicts
         :param mode         :          mode, different mode leads to different database system
-
         If mode == 1, the insert sql looks like :
             insert into dbname.tbname (field1, field2, field3) values (%(field1)s, %(field2)s, %(field3)s)
-
         if mode == 2:
             insert into dbname.tbname (field1, field2, field3) values (?, ?, ?)
-
         if mode == 3:
             insert into dbname,tbname (field1, field2, field3) values (%s, %s, %s)......
-
         And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
-
         """
         if mode is None:
             mode = self.dbConfig['mode']

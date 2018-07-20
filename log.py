@@ -13,7 +13,6 @@ CRITICAL    50
 """
 
 path = (os.path.dirname(sys.argv[0]) + '/').replace('//', r'/')
-print(path)
 
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()
@@ -55,4 +54,3 @@ info = log.info
 warning = log.warning
 error = log.error
 critical = log.critical
-
