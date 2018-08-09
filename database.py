@@ -45,7 +45,8 @@ def getCon(dbConfig):
     # way to connect to sqlserver with pymssql
     else:
         con = pymssql.connect(server='%s' % host, user='%s' % user,
-                              password='%s' % passwrod, database='%s' % dbname)
+                              password='%s' % passwrod, database='%s' % dbname, charset='UTF-8')
+        pymssql.set_max_connections(200000)
     return con
 
 class Database:
