@@ -144,4 +144,4 @@ class Database:
         self.cur.fetchone()
 
     def close(self):
-        self.cur.close()
+        self.con.close()
