@@ -69,6 +69,17 @@ class Database:
         self.con = getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
+        # add belows to make it convenience for us to make detail params in dnConig
+        self.mode = int(dbConfig['mode'])
+        self.host = dbConfig['host']
+        self.user = dbConfig['user']
+        self.passwrod = dbConfig['password']
+        self.dbname = dbConfig['dbname']
+        if 'tbname' in self.dbconfig:
+            self.tbname = self.dbconfig['tbname']
+        else:
+            self.tbname = ''
+
     def build(self,dbname,tbname, data, mode):
         """
            This method is mainly designed to build up sql sentence, with extra value which has to satisfy the grammar of each module that imported
