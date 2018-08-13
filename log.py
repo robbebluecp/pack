@@ -2,6 +2,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
+import platform
 
 """
 NOTSET      0
@@ -13,6 +14,8 @@ CRITICAL    50
 """
 
 path = (os.path.dirname(sys.argv[0]) + '/').replace('//', r'/')
+if platform.platform().lower().find('linux') >= 0:
+    path = os.getcwd() + '/'
 
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()

@@ -75,8 +75,8 @@ class Database:
         self.user = dbConfig['user']
         self.passwrod = dbConfig['password']
         self.dbname = dbConfig['dbname']
-        if 'tbname' in self.dbconfig:
-            self.tbname = self.dbconfig['tbname']
+        if 'tbname' in self.dbConfig:
+            self.tbname = self.dbConfig['tbname']
         else:
             self.tbname = ''
 
@@ -106,7 +106,7 @@ class Database:
         # sql for pymssql, with params of type tuple
         else:
             sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
-                dbname, tbname, str(field)[1:-1].replace("'", ''),
+                dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
                 str('%s,' * len(field))[0:-1])
             return sql, tuple(value)
 
