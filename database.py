@@ -17,16 +17,13 @@ except:
 def getCon(dbConfig):
     """
     Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
-
     :param host         :       the server name or ip of your database system
     :param user         :       user's login name or id ect
     :param password     :       your password
     :param dbname       :       database name that you want to use
     :param mode         :       the way you choose to use to connect to database system
                                 1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-
     So the dbConfig should look like :
-
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
     mode = int(dbConfig['mode'])
@@ -48,7 +45,8 @@ def getCon(dbConfig):
     # way to connect to sqlserver with pymssql
     else:
         con = pymssql.connect(server='%s' % host, user='%s' % user,
-                              password='%s' % passwrod, database='%s' % dbname)
+                              password='%s' % passwrod, database='%s' % dbname, charset='UTF-8')
+        pymssql.set_max_connections(200000)
     return con
 
 class Database:
@@ -56,18 +54,14 @@ class Database:
     This class support three ways to connect to database system.
     At first you have to get one of these packages : pymysql, pyodbc, pymssql.
     Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
-
     :param host         :       the server name or ip of your database system
     :param user         :       user's login name or id ect
     :param password     :       your password
     :param dbname       :       database name that you want to use
     :param mode         :       the way you choose to use to connect to database system
                                 1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-
     So the dbConfig should looks like :
-
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
-
     """
 
     def __init__(self, dbConfig):
@@ -75,10 +69,20 @@ class Database:
         self.con = getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
+        # add belows to make it convenience for us to make detail params in dnConig
+        self.mode = int(dbConfig['mode'])
+        self.host = dbConfig['host']
+        self.user = dbConfig['user']
+        self.passwrod = dbConfig['password']
+        self.dbname = dbConfig['dbname']
+        if 'tbname' in self.dbConfig:
+            self.tbname = self.dbConfig['tbname']
+        else:
+            self.tbname = ''
+
     def build(self,dbname,tbname, data, mode):
         """
            This method is mainly designed to build up sql sentence, with extra value which has to satisfy the grammar of each module that imported
-
            @:param see method "insert"
        """
         # field = list(sorted(data.keys(), key=lambda x: x[0]))
@@ -102,30 +106,24 @@ class Database:
         # sql for pymssql, with params of type tuple
         else:
             sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
-                dbname, tbname, str(field)[1:-1].replace("'", ''),
+                dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
                 str('%s,' * len(field))[0:-1])
             return sql, tuple(value)
 
     def insert(self,dbname,tbname,data,mode=None):
         """
         This methed support some convenient ways for you to insert your data into database.
-
         :param dbname       :          name of database
         :param tbname       :          name of table
         :param data         :          data you that want to insert into, type dict or list with dicts
         :param mode         :          mode, different mode leads to different database system
-
         If mode == 1, the insert sql looks like :
             insert into dbname.tbname (field1, field2, field3) values (%(field1)s, %(field2)s, %(field3)s)
-
         if mode == 2:
             insert into dbname.tbname (field1, field2, field3) values (?, ?, ?)
-
         if mode == 3:
             insert into dbname,tbname (field1, field2, field3) values (%s, %s, %s)......
-
         And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
-
         """
         if mode is None:
             mode = self.dbConfig['mode']
@@ -157,4 +155,4 @@ class Database:
         self.cur.fetchone()
 
     def close(self):
-        self.cur.close()
+        self.con.close()
