@@ -22,3 +22,31 @@ def time_stamp(time_int):
     chTime = time.localtime(time_int)
     output = time.strftime("%Y--%m--%d %H:%M:%S", chTime)
     return output
+
+
+def cprint(*char, c=None):
+    dic = {'r': '91',
+           'g': '92',
+           'y': '93',
+           'b': '94',
+           'p': '95',
+           'q': '96',
+           'z': '107,'
+           }
+    if c is None:
+        print(*char)
+        return
+    try:
+        if type(c) == str and c in dic:
+            print(*(map(lambda x: '\033[' + dic[c] + 'm' + str(x) + '\033[0m', char)))
+            return
+        if type(c) == list:
+            if len(c) != len(char):
+                print(*(map(lambda x: '\033[' + dic['z'] + 'm' + str(x) + '\033[0m', char)))
+                return
+            else:
+                print(*(map(lambda x, y: '\033[' + dic[y] + 'm' + str(x) + '\033[0m', char, c)))
+                return
+    except Exception as e:
+        print(*char)
+        return
