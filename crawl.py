@@ -118,7 +118,8 @@ class Crawl:
                 except Exception as e:
                     log.error('Other Error, URL:%s, ERROR:%s' % (self.url, e))
             except Exception as e:
-                log.critical('...', e)
+                index += 1
+                log.critical('...' + str(e))
 
         log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
         self.html = None
