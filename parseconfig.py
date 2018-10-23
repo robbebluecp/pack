@@ -44,20 +44,23 @@ class ParseConfig(configparser.ConfigParser, configparser.NoSectionError):
 
 
 def parse(section, fileName='config.cfg'):
-    parser = ParseConfig()
-    parser.read(fileName)
-    return parser.items(section)
+    # parser = ParseConfig()
+    # parser.read(fileName)
+    # return parser.items(section)
+    pass
 
 
 class Parse(dict):
-    crawlConfig = parse('crawlConfig')
-    proxyConfig = parse('proxyConfig')
-    dstConfig = parse('dstCon')
-    generateConfig = parse('generateConfig')
-    baseInfo = parse('baseInfo')
-    spyderConfig = parse('spyderConfig')
-    urlConfig = parse('urlConfig')
-    # dstCon = parse('dstCon')
-    srcTable = parse('srcTable')
-    srcCon = parse('srcCon')
-
+    crawlConfig = {}
+    crawlConfig['shuffle'] = False
+    # crawlConfig = parse('crawlConfig')
+    # proxyConfig = parse('proxyConfig')
+    # dstConfig = parse('dstCon')
+    # generateConfig = parse('generateConfig')
+    # baseInfo = parse('baseInfo')
+    # spyderConfig = parse('spyderConfig')
+    # urlConfig = parse('urlConfig')
+    # # dstCon = parse('dstCon')
+    # srcTable = parse('srcTable')
+    # srcCon = parse('srcCon')
+    pass

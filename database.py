@@ -128,6 +128,10 @@ class Database:
         if mode is None:
             mode = self.dbConfig['mode']
 
+        if not (dbname and tbname):
+            dbname = self.dbConfig['dbname']
+            tbname = self.dbConfig['tbname']
+
         # type dict
         if type(data) == dict:
             result = self.build(dbname,tbname, data, mode)
@@ -139,7 +143,7 @@ class Database:
             for m_data in data:
                 result = self.build(dbname, tbname, m_data, mode)
                 self.cur.execute(result[0], result[1])
-                self.con.commit()
+            self.con.commit()
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
