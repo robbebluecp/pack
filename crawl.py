@@ -7,12 +7,19 @@ try:
     import log
 except:
     from . import log
+try:
+    import useragents
+except:
+    from . import useragent
+try:
+    from parseconfig import Parse
+except:
+    from .parseconfig import Parse
+
 import gzip
 import http.client
 import urllib.error
 import urllib.parse
-import useragents
-from parseconfig import Parse
 
 
 class Crawl:
@@ -82,11 +89,12 @@ class Crawl:
                             data = json.dumps(self.data)
                         else:
                             data = self.data
+                        print(data)
                         req = requests.post(url=self.url, headers=self.urlConfig, proxies=self.proxyData, timeout=self.crawlConfig['timeout'], data=data)
                     if req.status_code != 200:
                         raise Exception('status code is not 200 ! ')
-                    html = req.content.decode(self.crawlConfig['encoding'], errors='ignore')
-                    return html
+                    self.html = req.content.decode(self.crawlConfig['encoding'], errors='ignore')
+                    return self.html
 
 
                 except http.client.BadStatusLine:
