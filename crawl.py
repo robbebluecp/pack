@@ -2,7 +2,6 @@ import urllib.request
 import requests
 import random
 import json
-
 try:
     import log
 except:
@@ -44,6 +43,14 @@ class Crawl:
         self.parse_config()
         self.run()
 
+    def get_proxy(self):
+        if self.proxyPools:
+            self.isProxy = True
+            self.proxyData = {self.protocol: 'http://' + random.choice(self.proxyPools)}
+        else:
+            self.proxyData = {}
+        return self.proxyData
+
     def parse_config(self):
         urlConfig_ = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}
 
@@ -60,17 +67,11 @@ class Crawl:
 
         if not self.crawlConfig:
             crawlConfig_.update({x: self.kwargs[x] for x in self.kwargs if
-                                 type(x) == str and self.kwargs[x] is not None and x in ['maxtime', 'timeout',
-                                                                                         'encoding']})
+                                 type(x) == str and self.kwargs[x] is not None and x in ['maxtime', 'timeout','encoding']})
         else:
             crawlConfig_.update({x: self.kwargs[x] for x in self.crawlConfig if
-                                 type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout',
-                                                                                              'encoding']})
-        if self.proxyPools:
-            self.isProxy = True
-            self.proxyData = {self.protocol: 'http://' + random.choice(self.proxyPools)}
-        else:
-            self.proxyData = {}
+                                 type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout','encoding']})
+
         self.urlConfig, self.crawlConfig = urlConfig_, crawlConfig_
 
         if Parse.crawlConfig['shuffle']:
@@ -79,37 +80,36 @@ class Crawl:
     def run(self):
         index = 0
         while index <= self.crawlConfig['maxtime']:
-
             try:
                 try:
                     if not self.data:
-                        req = requests.get(url=self.url, headers=self.urlConfig, proxies=self.proxyData, timeout=self.crawlConfig['timeout'])
+                        req = requests.get(url=self.url, headers=self.urlConfig, proxies=self.get_proxy(), timeout=self.crawlConfig['timeout'])
                     else:
                         if self.dataType == 'str':
                             data = json.dumps(self.data)
                         else:
                             data = self.data
-                        print(data)
-                        req = requests.post(url=self.url, headers=self.urlConfig, proxies=self.proxyData, timeout=self.crawlConfig['timeout'], data=data)
+                        req = requests.post(url=self.url, headers=self.urlConfig, proxies=self.get_proxy(), timeout=self.crawlConfig['timeout'], data=data)
                     if req.status_code != 200:
                         raise Exception('status code is not 200 ! ')
                     self.html = req.content.decode(self.crawlConfig['encoding'], errors='ignore')
                     return self.html
 
 
-                except http.client.BadStatusLine:
+                except (http.client.BadStatusLine, requests.exceptions.ConnectionError) as e:
                     index += 1
                     log.error('BadStatusLine Error, URL:%s' % self.url)
+
                 except urllib.error.URLError as e:
                     index += 0.2
-                    log.error('URLError, URL:%s, ERROR:%s' % (self.url, e))
+                    log.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
+
                 except Exception as e:
                     index += 1
-                    log.error('Other Error, URL:%s, ERROR:%s' % (self.url, e))
+                    log.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
             except Exception as e:
                 index += 1
                 log.critical('...' + str(e))
-
         log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
         self.html = None
 
