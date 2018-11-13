@@ -110,7 +110,7 @@ class Database:
                 str('%s,' * len(field))[0:-1])
             return sql, tuple(value)
 
-    def insert(self,dbname,tbname,data,mode=None):
+    def insert(self,data,dbname=None,tbname=None,mode=None):
         """
         This methed support some convenient ways for you to insert your data into database.
         :param dbname       :          name of database
@@ -128,9 +128,16 @@ class Database:
         if mode is None:
             mode = self.dbConfig['mode']
 
-        if not (dbname and tbname):
+        if not dbname:
             dbname = self.dbConfig['dbname']
-            tbname = self.dbConfig['tbname']
+        if not tbname:
+            if tbname in self.dbConfig:
+                tbname = self.dbConfig['tbname']
+            else:
+                raise Exception('请在self.dbConfig传入表名或在isnsert函数传入表名')
+
+        if tbname.find('.') > 0:
+            tbname = tbname.split('.')[-1]
 
         # type dict
         if type(data) == dict:
