@@ -150,7 +150,7 @@ class Database:
             for m_data in data:
                 result = self.build(dbname, tbname, m_data, mode)
                 self.cur.execute(result[0], result[1])
-            self.con.commit()
+                self.con.commit()
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
