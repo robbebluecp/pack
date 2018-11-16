@@ -131,10 +131,10 @@ class Database:
         if not dbname:
             dbname = self.dbConfig['dbname']
         if not tbname:
-            if tbname in self.dbConfig:
+            if 'tbname' in self.dbConfig:
                 tbname = self.dbConfig['tbname']
             else:
-                raise Exception('请在self.dbConfig传入表名或在isnsert函数传入表名')
+                raise Exception('请在self.dbConfig传入表名或在insert函数传入表名')
 
         if tbname.find('.') > 0:
             tbname = tbname.split('.')[-1]
