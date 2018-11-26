@@ -2,18 +2,25 @@ import urllib.request
 import requests
 import random
 import json
+
 try:
     import log
 except:
     from . import log
 try:
     import useragents
-except:
-    from . import useragent
+except ModuleNotFoundError:
+    try:
+        from . import useragent
+    except:
+        'Module useragent do not exists'
 try:
     from parseconfig import Parse
-except:
-    from .parseconfig import Parse
+except ModuleNotFoundError:
+    try:
+        from .parseconfig import Parse
+    except:
+        'Module parseconfig do not exists'
 
 import gzip
 import http.client
@@ -67,15 +74,18 @@ class Crawl:
 
         if not self.crawlConfig:
             crawlConfig_.update({x: self.kwargs[x] for x in self.kwargs if
-                                 type(x) == str and self.kwargs[x] is not None and x in ['maxtime', 'timeout','encoding']})
+                                 type(x) == str and self.kwargs[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
         else:
             crawlConfig_.update({x: self.kwargs[x] for x in self.crawlConfig if
-                                 type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout','encoding']})
+                                 type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
 
         self.urlConfig, self.crawlConfig = urlConfig_, crawlConfig_
 
-        if Parse.crawlConfig['shuffle']:
-            self.urlConfig['User-Agent'] = random.choice(useragents.userAgents)
+        try:
+            if Parse.crawlConfig['shuffle']:
+                self.urlConfig['User-Agent'] = random.choice(useragents.userAgents)
+        except:
+            pass
 
     def run(self):
         index = 0

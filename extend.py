@@ -20,7 +20,7 @@ def sigmoid(x_input):
 
 def time_stamp(time_int):
     chTime = time.localtime(time_int)
-    output = time.strftime("%Y--%m--%d %H:%M:%S", chTime)
+    output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
 
