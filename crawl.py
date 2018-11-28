@@ -80,6 +80,7 @@ class Crawl:
                                  type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
 
         self.urlConfig, self.crawlConfig = urlConfig_, crawlConfig_
+        # self.urlConfig = list(map(lambda x:(x, self.urlConfig[x]), self.urlConfig))
 
         try:
             if Parse.crawlConfig['shuffle']:
@@ -92,21 +93,29 @@ class Crawl:
         while index <= self.crawlConfig['maxtime']:
             try:
                 try:
-                    if not self.data:
-                        req = requests.get(url=self.url, headers=self.urlConfig, proxies=self.get_proxy(), timeout=self.crawlConfig['timeout'])
+                    if self.isProxy or self.proxyPools:
+                        proxy = self.get_proxy()
+                        proxyHandler = urllib.request.ProxyHandler(proxy)
+                        opener = urllib.request.build_opener(proxyHandler)
                     else:
-                        if self.dataType == 'str':
+                        opener = urllib.request.build_opener()
+                    if not self.data:
+                        req = urllib.request.Request(self.url, headers=self.urlConfig)
+                    else:
+                        if self.dataType == 'json':
                             data = json.dumps(self.data)
                         else:
-                            data = self.data
-                        req = requests.post(url=self.url, headers=self.urlConfig, proxies=self.get_proxy(), timeout=self.crawlConfig['timeout'], data=data)
-                    if req.status_code != 200:
+                            data = urllib.parse.urlencode(self.data)
+                        data = data.encode('utf8')
+                        req = urllib.request.Request(self.url, headers=self.urlConfig, data=data)
+                    res = opener.open(req)
+                    if res.status != 200:
                         raise Exception('status code is not 200 ! ')
-                    self.html = req.content.decode(self.crawlConfig['encoding'], errors='ignore')
+                    self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
+                    opener.close()
                     return self.html
 
-
-                except (http.client.BadStatusLine, requests.exceptions.ConnectionError) as e:
+                except http.client.BadStatusLine as e:
                     index += 1
                     log.error('BadStatusLine Error, URL:%s' % self.url)
 
