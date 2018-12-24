@@ -87,3 +87,4 @@ def get_log(file):
     graph_def.ParseFromString(gfile.FastGFile(model, 'rb').read())
     tf.import_graph_def(graph_def, name='graph')
     summaryWriter = tf.summary.FileWriter('log/', graph)
+    summaryWriter.close()
