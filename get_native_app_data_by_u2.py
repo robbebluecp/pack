@@ -101,7 +101,7 @@ def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝', isPrint=Fa
                         itemids = re.findall('item_id=(\d+)"', items)
                         volume = re.findall('"sold":"(\d+)"', items)
                         data = list(zip(itemids, titles, volume, prices))
-                        result = list(map(lambda x: {'itemid': x[0], 'title': x[1], 'volume': x[2], 'price': x[3]}, data))
+                        result = list(map(lambda x: {'itemid': x[0], 'title': x[1], 'volume': x[2], 'price': x[3], 'location': url}, data))
                         if isPrint:
                             print(result)
                         continue
