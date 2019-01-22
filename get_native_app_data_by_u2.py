@@ -4,7 +4,7 @@ import json
 import urllib.parse
 
 
-def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝'):
+def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝', isPrint=False):
     """
     :param ip:      手机IP
     :param port:    手机端口，默认7912
@@ -41,7 +41,6 @@ def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝'):
 
     # 保证每次从最远的数据开始收集,在运行该函数前，尽可能保证之前的数据已经清除
     first_urls.sort()
-
     second_urls = []
     for first_url in first_urls:
         try:
@@ -57,7 +56,6 @@ def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝'):
     if not len(second_urls):
         return
     second_urls.sort()
-
     third_urls = []
     for second_url in second_urls:
         try:
@@ -71,10 +69,8 @@ def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝'):
             third_urls.append(second_url + file_root)
     if not third_urls:
         return
-
     # 组成完整的文件路径
     third_urls = list(map(lambda x: x + 'sslCaptureData_0.txt', third_urls))
-
     for url in third_urls:
         try:
             try:
@@ -82,7 +78,7 @@ def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝'):
                 html = urllib.request.urlopen(url).read().decode('utf8', errors='ignore')
             except:
                 continue
-            if html.find('relationrecommend') > 0:
+            if html.find('relationrecommend') > 0 or html.find('appsearch') > 0:
                 # 提取重要数据
                 items = html[html.find('{'):].strip().replace('\\', '')
                 # 整体数据清洗
@@ -90,20 +86,39 @@ def get_native_app_data_by_u2(ip, port=7912, app_name='手机淘宝'):
                 # 3C部分数据清洗
                 # TODO 补充其余待清洗数据格式
                 try:
+                    # 品类抓取第一范式
                     items = json.loads(items)
                 except:
-                    tmp = re.search('"\[([\S\s]+?)",', items).group(1)
-                    items.replace('"[%s",' % tmp, "'''%s'''," % tmp)
-                    items = json.loads(items)
+                    try:
+                        # 品类抓取第二范式(3C类)
+                        tmp = re.search('"\[([\S\s]+?)",', items).group(1)
+                        items.replace('"[%s",' % tmp, "'''%s'''," % tmp)
+                        items = json.loads(items)
+                    except:
+                        # 搜索词抓取第一范式
+                        prices = re.findall('"price":"(.*?)"', items)
+                        titles = re.findall('"title":"(.*?)",', items)
+                        itemids = re.findall('item_id=(\d+)"', items)
+                        volume = re.findall('"sold":"(\d+)"', items)
+                        data = list(zip(itemids, titles, volume, prices))
+                        result = list(map(lambda x: {'itemid': x[0], 'title': x[1], 'volume': x[2], 'price': x[3]}, data))
+                        if isPrint:
+                            print(result)
+                        continue
                 data = items['data']['result'][0]['itemsArray']
 
+                result = []
                 for item in data:
                     price = item['atmosphere']['price']
                     volume = item['sold']
                     itemid = item['item_id']
                     title = item['title']
                     insert_data = {'price': price, 'title': title, 'itemid': itemid, 'volume': volume, 'location': url}
-                    print(insert_data)
+                    result.append(insert_data)
+                if isPrint:
+                    print(result)
             # TODO 加入ADB清除缓存功能
         except Exception as e:
             print(e)
+
+get_native_app_data_by_u2('192.168.0.135', isPrint=True)
