@@ -11,8 +11,13 @@ INFO        20
 WARNING     30
 ERROR       40
 CRITICAL    50
-"""
 
+examples:
+        (1) log.warning('This is A warning message')
+
+        (1) log.critical('This is A critical message')
+"""
+# 路径提取操作在程序链式启动时会出现问题，使用如下方法进行fix
 path = (os.path.dirname(sys.argv[0]) + '/').replace('//', r'/')
 if platform.platform().lower().find('linux') >= 0:
     path = os.getcwd() + '/'
@@ -20,10 +25,13 @@ if platform.platform().lower().find('linux') >= 0:
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()
 criticalFilter = logging.Filter()
+
+# 区分日志等级
 warningFilter.filter = lambda level: 30 <= level.levelno <= 30
 errorFilter.filter = lambda level: 40 <= level.levelno <= 40
 criticalFilter.filter = lambda level: 50 <= level.levelno <= 50
 
+# 日志分三个等级
 warningOperation = RotatingFileHandler(path + 'z_warning.log', maxBytes=1 * 1024 * 1024, backupCount=1)
 warningOperation.addFilter(warningFilter)
 warningFormat = logging.Formatter('%(asctime)s %(filename)s %(levelname)s %(message)s')
@@ -59,6 +67,7 @@ error = log.error
 critical = log.critical
 
 
+# 该函数留白
 def conbine(msg, e):
     content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + msg
     return content

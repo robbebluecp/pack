@@ -14,40 +14,7 @@ except:
     print('module "pymssql" is not avalable for your recent system circustance')
     pass
 
-def getCon(dbConfig):
-    """
-    Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
-    :param host         :       the server name or ip of your database system
-    :param user         :       user's login name or id ect
-    :param password     :       your password
-    :param dbname       :       database name that you want to use
-    :param mode         :       the way you choose to use to connect to database system
-                                1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-    So the dbConfig should look like :
-        dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
-    """
-    mode = int(dbConfig['mode'])
-    host = dbConfig['host']
-    user = dbConfig['user']
-    passwrod = dbConfig['password']
-    dbname = dbConfig['dbname']
-    # way to connect to mysql with pymysql
-    if mode == 1:
-        con = pymysql.connect(host='%s' % host, user='%s' % user,
-                              password='%s' % passwrod, charset="utf8")
 
-    # way to connect to sqlserver with pyodbc
-    elif mode == 2:
-        con = pyodbc.connect(
-            'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
-                host, dbname, user, passwrod))
-
-    # way to connect to sqlserver with pymssql
-    else:
-        con = pymssql.connect(server='%s' % host, user='%s' % user,
-                              password='%s' % passwrod, database='%s' % dbname, charset='UTF-8')
-        pymssql.set_max_connections(200000)
-    return con
 
 class Database:
     """
@@ -66,7 +33,7 @@ class Database:
 
     def __init__(self, dbConfig):
         self.dbConfig = dbConfig
-        self.con = getCon(self.dbConfig)
+        self.con = self.getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
         # add belows to make it convenience for us to make detail params in dnConig
@@ -79,6 +46,42 @@ class Database:
             self.tbname = self.dbConfig['tbname']
         else:
             self.tbname = ''
+
+    @staticmethod
+    def getCon(dbConfig):
+        """
+        建立连接的函数，之前是写在类里面的
+        :param host         :       the server name or ip of your database system
+        :param user         :       user's login name or id ect
+        :param password     :       your password
+        :param dbname       :       database name that you want to use
+        :param mode         :       the way you choose to use to connect to database system
+                                    1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
+        So the dbConfig should look like :
+            dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
+        """
+        mode = int(dbConfig['mode'])
+        host = dbConfig['host']
+        user = dbConfig['user']
+        passwrod = dbConfig['password']
+        dbname = dbConfig['dbname']
+        # way to connect to mysql with pymysql
+        if mode == 1:
+            con = pymysql.connect(host='%s' % host, user='%s' % user,
+                                  password='%s' % passwrod, charset="utf8")
+
+        # way to connect to sqlserver with pyodbc
+        elif mode == 2:
+            con = pyodbc.connect(
+                'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
+                    host, dbname, user, passwrod))
+
+        # way to connect to sqlserver with pymssql
+        else:
+            con = pymssql.connect(server='%s' % host, user='%s' % user,
+                                  password='%s' % passwrod, database='%s' % dbname, charset='UTF-8')
+            pymssql.set_max_connections(200000)
+        return con
 
     def build(self,dbname,tbname, data, mode):
         """
