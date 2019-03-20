@@ -31,7 +31,7 @@ class Database:
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, dbConfig):
+    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1}):
         self.dbConfig = dbConfig
         self.con = self.getCon(self.dbConfig)
         self.cur = self.con.cursor()
