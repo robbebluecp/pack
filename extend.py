@@ -1,5 +1,6 @@
 import ctypes
 import time
+import datetime
 
 def kill(tid, theType=SystemExit):
     '''
@@ -43,6 +44,8 @@ def time_stamp(time_int):
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
+def time_to_char():
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 def cprint(*char, c=None):
     '''
