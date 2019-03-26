@@ -113,6 +113,15 @@ class Database:
                 str('%s,' * len(field))[0:-1])
             return sql, tuple(value)
 
+    @staticmethod
+    def tuple_to_dict(data):
+        """
+        把tuple类型的数据格式转成dict类型
+        :param data:    以元组形式存放的list，如：[('name':'罗大黑'), ('age': 25)]
+        :return:        以字典形式存放的list，如：{'name': '罗大黑', 'age': 25}
+        """
+        return dict(data)
+
     def insert(self,data,dbname=None,tbname=None,mode=None):
         """
         This methed support some convenient ways for you to insert your data into database.
@@ -151,9 +160,13 @@ class Database:
         # type list with dict
         if type(data) == list:
             for m_data in data:
-                result = self.build(dbname, tbname, m_data, mode)
+                if isinstance(m_data, dict):
+                    result = self.build(dbname, tbname, m_data, mode)
+                elif isinstance(m_data, list):
+                    result = self.tuple_to_dict(m_data)
                 self.cur.execute(result[0], result[1])
                 self.con.commit()
+
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
