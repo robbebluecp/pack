@@ -170,8 +170,8 @@ class Database:
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
-        if sql.find('select') >= 0:
-            return self.cur.fetchall()
+        # if sql.find('select') >= 0:
+        #     return self.cur.fetchall()
         return self.cur
 
     def commit(self):
