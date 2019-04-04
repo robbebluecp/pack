@@ -15,8 +15,3 @@
 
 - __[parseconfig.py](https://github.com/ldhsight/pack/blob/master/parseconfig.py)__ 继承重写Parseconfig类，支持大小写敏感和字典和int类型
 
-- __[get_native_app_data_by_u2.py](https://github.com/ldhsight/pack/blob/master/get_native_app_data_by_u2.py)__ 基于uiautomator2和adb实现的手机APP数据抽取
-
-- __[keras_tools.py](https://github.com/ldhsight/pack/blob/master/keras_tools.py)__ 基于keras和tensorflow的h5文件转pd文件，和tensorboard可视化页面渲染
-
-
