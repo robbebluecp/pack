@@ -1,9 +1,4 @@
 try:
-    import pyodbc
-except:
-    print('module "pyodbc" is not avalable for your recent system circustance')
-    pass
-try:
     import pymysql
 except:
     print('module "pymysql" is not avalable for your recent system circustance')
@@ -18,25 +13,25 @@ except:
 
 class Database:
     """
-    This class support three ways to connect to database system.
-    At first you have to get one of these packages : pymysql, pyodbc, pymssql.
-    Param dbConfig is a dictionary including at least the following params : host, user, password, dbname.
-    :param host         :       the server name or ip of your database system
-    :param user         :       user's login name or id ect
-    :param password     :       your password
-    :param dbname       :       database name that you want to use
-    :param mode         :       the way you choose to use to connect to database system
-                                1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-    So the dbConfig should looks like :
+    该class集成pymssql和pymysql的使用方法，主要做了对insert功能的封装
+    其中 1 表示 mysql， 2 表示 sqlserver
+    注：2019/04/04 对2表示的pyodbc进行移除，转成pymssl，将来对sqlserver的存储皆使用pymssql，即：2模式
+
+    :param host         :       服务器地址
+    :param user         :       用户名
+    :param password     :       密码
+    :param dbname       :       数据库名
+    :param mode         :       连接方式，1表示连接mysql，2表示连接sqlserver
+
+    连接形式如下 :
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1}):
+    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1}, **kwargs):
         self.dbConfig = dbConfig
         self.con = self.getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
-        # add belows to make it convenience for us to make detail params in dnConig
         self.mode = int(dbConfig['mode'])
         self.host = dbConfig['host']
         self.user = dbConfig['user']
@@ -46,18 +41,18 @@ class Database:
             self.tbname = self.dbConfig['tbname']
         else:
             self.tbname = ''
+        if kwargs:
+            self.dbConfig.update({x: kwargs[x] for x in ['host', 'user', 'password', 'mode', 'dbname','tbname'] if x != ''})
 
     @staticmethod
     def getCon(dbConfig):
         """
-        建立连接的函数，之前是写在类里面的
-        :param host         :       the server name or ip of your database system
-        :param user         :       user's login name or id ect
-        :param password     :       your password
-        :param dbname       :       database name that you want to use
-        :param mode         :       the way you choose to use to connect to database system
-                                    1 means pymysql to mysql, 2 means pyodbc to sqlserver and 3 is pymssql to sqlserver
-        So the dbConfig should look like :
+        :param host         :       服务器地址
+        :param user         :       用户名
+        :param password     :       密码
+        :param dbname       :       数据库名
+        :param mode         :       连接方式，1表示连接mysql，2表示连接sqlserver
+        形式如下 :
             dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
         """
         mode = int(dbConfig['mode'])
@@ -71,13 +66,13 @@ class Database:
                                   password='%s' % passwrod, charset="utf8")
 
         # way to connect to sqlserver with pyodbc
-        elif mode == 2:
-            con = pyodbc.connect(
-                'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
-                    host, dbname, user, passwrod))
+        # elif mode == 2:
+        #     con = pyodbc.connect(
+        #         'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
+        #             host, dbname, user, passwrod))
 
         # way to connect to sqlserver with pymssql
-        else:
+        elif mode == 2:
             con = pymssql.connect(server='%s' % host, user='%s' % user,
                                   password='%s' % passwrod, database='%s' % dbname, charset='UTF-8')
             pymssql.set_max_connections(200000)
@@ -85,9 +80,9 @@ class Database:
 
     def build(self,dbname,tbname, data, mode):
         """
-           This method is mainly designed to build up sql sentence, with extra value which has to satisfy the grammar of each module that imported
+           插入方法sql语句封装
            @:param see method "insert"
-       """
+        """
         # field = list(sorted(data.keys(), key=lambda x: x[0]))
         field = list(data.keys())
         value = [str(data[x]) for x in field]
@@ -100,14 +95,14 @@ class Database:
             return sql, data
 
         # sql for pyodbc, with params of type list
-        elif mode == 2:
-            sql = """insert into %s.dbo.%s (%s) values (%s)""" % (
-                dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
-                (len(field) * '?,')[:-1])
-            return sql, value
+        # elif mode == 2:
+        #     sql = """insert into %s.dbo.%s (%s) values (%s)""" % (
+        #         dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
+        #         (len(field) * '?,')[:-1])
+        #     return sql, value
 
         # sql for pymssql, with params of type tuple
-        else:
+        elif mode == 2:
             sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
                 str('%s,' * len(field))[0:-1])
@@ -124,15 +119,18 @@ class Database:
 
     def insert(self,data,dbname=None,tbname=None,mode=None):
         """
-        This methed support some convenient ways for you to insert your data into database.
-        :param dbname       :          name of database
-        :param tbname       :          name of table
-        :param data         :          data you that want to insert into, type dict or list with dicts
+        封装插入方法，以字典或列表包含字典或列表包含元组形式.
+        :param dbname       :          库名
+        :param tbname       :          表明
+        :param data         :          数据集，以字典或列表包含字典或列表包含元组形式
+                                       字典           {'a': 1, 'b': 2}
+                                       列表包含字典    [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
+                                       列表包含元组    [(a, 1), (b, 2)]
         :param mode         :          mode, different mode leads to different database system
         If mode == 1, the insert sql looks like :
             insert into dbname.tbname (field1, field2, field3) values (%(field1)s, %(field2)s, %(field3)s)
-        if mode == 2:
-            insert into dbname.tbname (field1, field2, field3) values (?, ?, ?)
+        # if mode == 2:
+        #     insert into dbname.tbname (field1, field2, field3) values (?, ?, ?)
         if mode == 3:
             insert into dbname,tbname (field1, field2, field3) values (%s, %s, %s)......
         And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
@@ -157,7 +155,7 @@ class Database:
             self.cur.execute(result[0], result[1])
             self.con.commit()
 
-        # type list with dict
+        # type list with dict or tuple
         if type(data) == list:
             for m_data in data:
                 if isinstance(m_data, dict):
@@ -167,11 +165,8 @@ class Database:
                 self.cur.execute(result[0], result[1])
                 self.con.commit()
 
-
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
-        # if sql.find('select') >= 0:
-        #     return self.cur.fetchall()
         return self.cur
 
     def commit(self):
