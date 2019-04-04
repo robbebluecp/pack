@@ -1,5 +1,4 @@
 import urllib.request
-import requests
 import random
 import json
 
@@ -22,7 +21,6 @@ except ModuleNotFoundError:
     except:
         'Module parseconfig do not exists'
 
-import gzip
 import http.client
 import urllib.error
 import urllib.parse

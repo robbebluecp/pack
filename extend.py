@@ -1,7 +1,10 @@
 import ctypes
 import time
 import datetime
+import numpy as np
 
+
+# 即将弃用，不安全
 def kill(tid, theType=SystemExit):
     '''
     杀线程的方法，不安全，不建议用
@@ -44,9 +47,11 @@ def time_stamp(time_int):
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
+# 当前时间转固定格式
 def time_to_char():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
+# pycharm专用，颜色字体打印
 def cprint(*char, c=None):
     '''
     打印有颜色字体
