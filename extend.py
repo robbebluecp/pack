@@ -26,13 +26,6 @@ def kill(tid, theType=SystemExit):
     except Exception as e:
         print('Fail to kill thread, Error is : ' + str(e))
 
-def softmax(x_input):
-    x_input = np.asarray(x_input, dtype=np.float) / max(x_input)
-    return np.exp(x_input) / np.sum(np.exp(x_input))
-
-
-def sigmoid(x_input):
-    return 1.0 / (1.0 + np.exp(-(np.asarray(x_input, dtype=np.float))))
 
 def time_stamp(time_int):
     '''
