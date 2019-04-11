@@ -85,10 +85,11 @@ class Database:
         """
         # field = list(sorted(data.keys(), key=lambda x: x[0]))
         field = list(data.keys())
-        value = [str(data[x]) for x in field]
+
 
         # sql for mysql, with params of type dict
         if mode == 1:
+            data = {key: str(data[key]) for key in data}
             sql = """insert into %s.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 '%(' + ('-'.join(field)).replace('-', ')s,%(') + ')s')
@@ -96,6 +97,7 @@ class Database:
 
         # sql for pyodbc, with params of type list
         # elif mode == 2:
+        #     value = [str(data[x]) for x in field]
         #     sql = """insert into %s.dbo.%s (%s) values (%s)""" % (
         #         dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
         #         (len(field) * '?,')[:-1])
@@ -103,6 +105,7 @@ class Database:
 
         # sql for pymssql, with params of type tuple
         elif mode == 2:
+            value = [str(data[x]) for x in field]
             sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
                 str('%s,' * len(field))[0:-1])
