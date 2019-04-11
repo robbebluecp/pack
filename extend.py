@@ -2,29 +2,14 @@ import ctypes
 import time
 import datetime
 import numpy as np
+from hashlib import md5
 
 
 # 即将弃用，不安全
-def kill(tid, theType=SystemExit):
-    '''
-    杀线程的方法，不安全，不建议用
-    :param tid(object):     进程变量名
-    :param theType:
-    :return:
-
-    examples:
-            thread_1 = threading.Thread(xxxxxxxxxx)
-            thread_1.start()
-            ......
-            kill(thread_1)
-    '''
-    try:
-        id = ctypes.c_long(tid.ident)
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(id, ctypes.py_object(theType))
-        if res == 0:
-            print('Invaild thread id !')
-    except Exception as e:
-        print('Fail to kill thread, Error is : ' + str(e))
+def get_md5(char):
+    m = md5()
+    m.update(char.encode('utf8'))
+    return m.hexdigest()
 
 
 def time_stamp(time_int):

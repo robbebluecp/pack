@@ -84,7 +84,7 @@ class Crawl:
         获取代理，返回字典类型，每一次请求更换一次代理
         :return(dict):  形如{'http': '11.11.11.11:11'} 或者 {'https': '11.11.11.11:11'}
         '''
-        if self.proxyPools:
+        if self.proxyPools and self.proxyPools[0] != '':
             self.isProxy = True
             self.proxyData = {self.protocol: 'http://' + random.choice(self.proxyPools)}
         else:

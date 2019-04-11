@@ -26,7 +26,7 @@ def cosine_similarity(v1, v2):
     v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
     up = np.dot(v1, v2)
     down = np.linalg.norm(v1) * np.linalg.norm(v2)
-    return up / down
+    return round(up / down, 3)
 
 
 def euclid_distince(v1, v2):
@@ -34,7 +34,7 @@ def euclid_distince(v1, v2):
     v1 /= np.sum(v1)
     v2 /= np.sum(v2)
     v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
-    return np.linalg.norm(v1 - v2)
+    return round(np.linalg.norm(v1 - v2), 3)
 
 def softmax(x_input):
     x_input = np.asarray(x_input, dtype=np.float) / max(x_input)
