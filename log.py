@@ -23,7 +23,7 @@ if platform.platform().lower().find('linux') >= 0:
     path = os.getcwd() + '/'
 
 warningFilter = logging.Filter()
-errgit config --global user.name "YOURUSERNAME" orFilter = logging.Filter()
+Filter = logging.Filter()
 criticalFilter = logging.Filter()
 
 # 区分日志等级
