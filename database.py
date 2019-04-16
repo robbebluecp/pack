@@ -29,6 +29,8 @@ class Database:
 
     def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1}, **kwargs):
         self.dbConfig = dbConfig
+        if kwargs:
+            self.dbConfig.update({x: kwargs.get(x) for x in ['host', 'user', 'password', 'mode', 'dbname','tbname'] if kwargs.get(x) != '' and kwargs.get(x) is not None})
         self.con = self.getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
@@ -41,8 +43,6 @@ class Database:
             self.tbname = self.dbConfig['tbname']
         else:
             self.tbname = ''
-        if kwargs:
-            self.dbConfig.update({x: kwargs.get(x) for x in ['host', 'user', 'password', 'mode', 'dbname','tbname'] if kwargs.get(x) != '' and kwargs.get(x) is not None})
 
     @staticmethod
     def getCon(dbConfig):

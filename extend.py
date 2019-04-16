@@ -5,7 +5,6 @@ import numpy as np
 from hashlib import md5
 
 
-# 即将弃用，不安全
 def get_md5(char):
     m = md5()
     m.update(char.encode('utf8'))
