@@ -63,7 +63,7 @@ class Database:
         # way to connect to mysql with pymysql
         if mode == 1:
             con = pymysql.connect(host='%s' % host, user='%s' % user,
-                                  password='%s' % passwrod, charset="utf8")
+                                  password='%s' % passwrod, charset="utf8", database=dbname)
 
         # way to connect to sqlserver with pyodbc
         # elif mode == 2:
