@@ -42,7 +42,7 @@ class Database:
         else:
             self.tbname = ''
         if kwargs:
-            self.dbConfig.update({x: kwargs[x] for x in ['host', 'user', 'password', 'mode', 'dbname','tbname'] if x != ''})
+            self.dbConfig.update({x: kwargs.get(x) for x in ['host', 'user', 'password', 'mode', 'dbname','tbname'] if kwargs.get(x) != '' and kwargs.get(x) is not None})
 
     @staticmethod
     def getCon(dbConfig):
