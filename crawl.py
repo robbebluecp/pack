@@ -58,7 +58,7 @@ class Crawl:
             or
             html = crawl.crawl('https://www.baidu.com',}, urlConfig={'Host': 'baidu.com', 'Cookie': 'xxxxxx'})
     """
-    def __init__(self, url, timeout=5, encoding='utf8', maxtime=5, data=None, isProxy=False, proxyPools=None, crawlConfig=None, urlConfig=None, dateType='str', **kwargs):
+    def __init__(self, url, timeout=5, encoding='utf8', maxtime=5, data=None, dateType='str', isProxy=False, proxyPools=None, crawlConfig=None, urlConfig=None, isBinary=False, **kwargs):
         self.url = url
         self.timeout = timeout
         self.maxtime = maxtime
@@ -69,6 +69,7 @@ class Crawl:
         self.proxyPools = proxyPools
         self.crawlConfig = crawlConfig
         self.urlConfig = urlConfig
+        self.isBinary = isBinary
 
         # 根据协议类型选择对应的代理类型
         self.protocol = url[:url.find(':')]
@@ -155,7 +156,10 @@ class Crawl:
                     res = opener.open(req)
                     if res.status != 200:
                         raise Exception('status code is not 200 ! ')
-                    self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
+                    if self.isBinary:
+                        self.html = res.read()
+                    else:
+                        self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
                     opener.close()
                     return self.html
 

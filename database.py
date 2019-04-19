@@ -27,10 +27,10 @@ class Database:
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1}, **kwargs):
+    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1, 'charset': 'utf8'}, **kwargs):
         self.dbConfig = dbConfig
         if kwargs:
-            self.dbConfig.update({x: kwargs.get(x) for x in ['host', 'user', 'password', 'mode', 'dbname','tbname'] if kwargs.get(x) != '' and kwargs.get(x) is not None})
+            self.dbConfig.update({x: kwargs.get(x) for x in ['host', 'user', 'password', 'mode', 'dbname','tbname', 'charset'] if kwargs.get(x) != '' and kwargs.get(x) is not None})
         self.con = self.getCon(self.dbConfig)
         self.cur = self.con.cursor()
 
@@ -39,6 +39,7 @@ class Database:
         self.user = dbConfig['user']
         self.passwrod = dbConfig['password']
         self.dbname = dbConfig['dbname']
+        self.charset = dbConfig['charset']
         if 'tbname' in self.dbConfig:
             self.tbname = self.dbConfig['tbname']
         else:
@@ -60,10 +61,11 @@ class Database:
         user = dbConfig['user']
         passwrod = dbConfig['password']
         dbname = dbConfig['dbname']
+        charset = dbConfig['charset']
         # way to connect to mysql with pymysql
         if mode == 1:
             con = pymysql.connect(host='%s' % host, user='%s' % user,
-                                  password='%s' % passwrod, charset="utf8", database=dbname)
+                                  password='%s' % passwrod, charset=charset, database=dbname)
 
         # way to connect to sqlserver with pyodbc
         # elif mode == 2:
@@ -74,7 +76,7 @@ class Database:
         # way to connect to sqlserver with pymssql
         elif mode == 2:
             con = pymssql.connect(server='%s' % host, user='%s' % user,
-                                  password='%s' % passwrod, database='%s' % dbname, charset='UTF-8')
+                                  password='%s' % passwrod, database='%s' % dbname, charset=charset)
             pymssql.set_max_connections(200000)
         return con
 
@@ -89,7 +91,10 @@ class Database:
 
         # sql for mysql, with params of type dict
         if mode == 1:
-            data = {key: str(data[key]) for key in data}
+
+
+
+            data = {key: data[key] if isinstance(data[key], (bytes, )) else str(data[key]) for key in data }
             sql = """insert into %s.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 '%(' + ('-'.join(field)).replace('-', ')s,%(') + ')s')
@@ -154,6 +159,7 @@ class Database:
 
         # type dict
         if type(data) == dict:
+
             result = self.build(dbname,tbname, data, mode)
             self.cur.execute(result[0], result[1])
             self.con.commit()
