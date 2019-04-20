@@ -10,7 +10,6 @@ except:
     pass
 
 
-
 class Database:
     """
     该class集成pymssql和pymysql的使用方法，主要做了对insert功能的封装
@@ -27,7 +26,7 @@ class Database:
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'tmp', 'mode': 1, 'charset': 'utf8'}, **kwargs):
+    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'main', 'tbname':'logs', 'mode': 1, 'charset': 'utf8'}, **kwargs):
         self.dbConfig = dbConfig
         self.dbConfig['charset'] = 'utf8'
         if kwargs:
