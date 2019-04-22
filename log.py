@@ -73,19 +73,19 @@ def debug(msg, e=None, *args, **kwargs):
   if e:
     msg = conbine(msg, e)
   return log.debug(msg, *args, **kwargs)
-def info(msg, e, *args, **kwargs):
+def info(msg, e=None, *args, **kwargs):
   if e:
     msg = conbine(msg, e)
   return log.info(msg, *args, **kwargs)
-def warning(msg, e, *args, **kwargs):
+def warning(msg, e=None, *args, **kwargs):
   if e:
     msg = conbine(msg, e)
   return log.warning(msg, *args, **kwargs)
-def error(msg, e, *args, **kwargs):
+def error(msg, e=None, *args, **kwargs):
   if e:
     msg = conbine(msg, e)
   return log.error(msg, *args, **kwargs)
-def critical(msg, e, *args, **kwargs):
+def critical(msg, e=None, *args, **kwargs):
   if e:
     msg = conbine(msg, e)
   return log.critical(msg, *args, **kwargs)
