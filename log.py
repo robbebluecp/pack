@@ -66,7 +66,7 @@ warning = log.warning
 error = log.error
 
 def conbine(msg, e):
-  content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + msg
+  content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + str(msg)
   return content
 
 def debug(msg, e=None, *args, **kwargs):
