@@ -8,6 +8,7 @@ try:
 except:
     print('module "pymssql" is not avalable for your recent system circustance')
     pass
+import copy
 
 
 class Database:
@@ -26,27 +27,21 @@ class Database:
         dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, dbConfig={'host': 'localhost', 'user': 'root', 'password': '321', 'dbname': 'main', 'tbname':'logs', 'mode': 1, 'charset': 'utf8'}, **kwargs):
-        self.dbConfig = dbConfig
-        self.dbConfig['charset'] = 'utf8'
-        if kwargs:
-            self.dbConfig.update({x: kwargs.get(x) if kwargs.get(x) != '' and kwargs.get(x) is not None else dbConfig[x] for x in ['host', 'user', 'password', 'mode', 'dbname','tbname', 'charset'] })
-        self.con = self.getCon(self.dbConfig)
+    def __init__(self, host='localhost', port='3306', user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
+        self.db_config = copy.deepcopy(locals())
+        self.mode = int(mode)
+        self.host = host
+        self.user = user
+        self.passwrod = password
+        self.dbname = dbname
+        self.tbname = tbname
+        self.charset = charset
+        self.con = self.get_con(**self.db_config)
         self.cur = self.con.cursor()
-
-        self.mode = int(dbConfig['mode'])
-        self.host = dbConfig['host']
-        self.user = dbConfig['user']
-        self.passwrod = dbConfig['password']
-        self.dbname = dbConfig['dbname']
-        self.charset = dbConfig['charset']
-        if 'tbname' in self.dbConfig:
-            self.tbname = self.dbConfig['tbname']
-        else:
-            self.tbname = ''
+        
 
     @staticmethod
-    def getCon(dbConfig):
+    def get_con(host='localhost', port='3306', user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
         """
         :param host         :       服务器地址
         :param user         :       用户名
@@ -56,24 +51,18 @@ class Database:
         形式如下 :
             dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
         """
-        mode = int(dbConfig['mode'])
-        host = dbConfig['host']
-        user = dbConfig['user']
-        passwrod = dbConfig['password']
-        dbname = dbConfig['dbname']
-        charset = dbConfig['charset']
-        # way to connect to mysql with pymysql
+
+        mode = int(mode)
+        host = host
+        user = user
+        passwrod = password
+        dbname = dbname
+        tbname = tbname
+        charset = charset
         if mode == 1:
             con = pymysql.connect(host='%s' % host, user='%s' % user,
                                   password='%s' % passwrod, charset=charset, database=dbname)
 
-        # way to connect to sqlserver with pyodbc
-        # elif mode == 2:
-        #     con = pyodbc.connect(
-        #         'DRIVER={SQL Server};SERVER=%s;DATABASE=%s;UID=%s;PWD=%s' % (
-        #             host, dbname, user, passwrod))
-
-        # way to connect to sqlserver with pymssql
         elif mode == 2:
             con = pymssql.connect(server='%s' % host, user='%s' % user,
                                   password='%s' % passwrod, database='%s' % dbname, charset=charset)
@@ -85,28 +74,17 @@ class Database:
            插入方法sql语句封装
            @:param see method "insert"
         """
-        # field = list(sorted(data.keys(), key=lambda x: x[0]))
         field = list(data.keys())
 
 
         # sql for mysql, with params of type dict
         if mode == 1:
 
-
-
             data = {key: data[key] if isinstance(data[key], (bytes, )) else str(data[key]) for key in data }
             sql = """insert into %s.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 '%(' + ('-'.join(field)).replace('-', ')s,%(') + ')s')
             return sql, data
-
-        # sql for pyodbc, with params of type list
-        # elif mode == 2:
-        #     value = [str(data[x]) for x in field]
-        #     sql = """insert into %s.dbo.%s (%s) values (%s)""" % (
-        #         dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
-        #         (len(field) * '?,')[:-1])
-        #     return sql, value
 
         # sql for pymssql, with params of type tuple
         elif mode == 2:
