@@ -60,10 +60,6 @@ log.addHandler(errorOperation)
 log.addHandler(criticalOperation)
 log.addHandler(console)
 
-debug = log.debug
-info = log.info
-warning = log.warning
-error = log.error
 
 def conbine(msg, e):
   content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + str(msg)
