@@ -12,7 +12,7 @@ class Word2Vec:
 
     """
 
-    def __init__(self, sentence_list, word_bag, diy=True, file_name=None):
+    def __init__(self, sentence_list, word_bag=None, diy=True, file_name=None):
         if diy:
             self.word_bag = self.diy(file_name)
         else:
@@ -78,7 +78,7 @@ class Word2Vec:
             for sentence in self.sentence_list:
                 tmp = np.zeros(shape=self.dim)
                 index = 1
-                for obj in HanLP.senment(sentence):
+                for obj in HanLP.segment(sentence):
                     word = obj.word
                     if word in self.char_mapping:
                         tmp += self.char_mapping[word]
