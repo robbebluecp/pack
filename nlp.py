@@ -48,7 +48,7 @@ class Word2Vec:
 
             for key in self.word_bag:
                 sum_ = str(np.sum(self.word_bag[key]))
-                char_to_sum[key] = sum_
+                char_to_sum[key] = self.word_bag[key]
                 sum_to_char[sum_] = key
 
             with open(char_to_sum_file, 'wb') as f:
