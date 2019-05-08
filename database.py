@@ -24,13 +24,14 @@ class Database:
     :param mode         :       连接方式，1表示连接mysql，2表示连接sqlserver
 
     连接形式如下 :
-        dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
+        db_config={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
     def __init__(self, host='localhost', port='3306', user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
         self.db_config = copy.deepcopy(locals())
         self.mode = int(mode)
         self.host = host
+        self.port = port
         self.user = user
         self.passwrod = password
         self.dbname = dbname
@@ -49,22 +50,23 @@ class Database:
         :param dbname       :       数据库名
         :param mode         :       连接方式，1表示连接mysql，2表示连接sqlserver
         形式如下 :
-            dbConfig={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
+            db_config={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
         """
 
         mode = int(mode)
         host = host
+        port = port
         user = user
         passwrod = password
         dbname = dbname
         tbname = tbname
         charset = charset
         if mode == 1:
-            con = pymysql.connect(host='%s' % host, user='%s' % user,
+            con = pymysql.connect(host='%s' % host, user='%s' % user, port=int(port),
                                   password='%s' % passwrod, charset=charset, database=dbname)
 
         elif mode == 2:
-            con = pymssql.connect(server='%s' % host, user='%s' % user,
+            con = pymssql.connect(server='%s' % host, user='%s' % user, port='%s' % port,
                                   password='%s' % passwrod, database='%s' % dbname, charset=charset)
             pymssql.set_max_connections(200000)
         return con
@@ -122,15 +124,15 @@ class Database:
         And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
         """
         if mode is None:
-            mode = self.dbConfig['mode']
+            mode = self.db_config['mode']
 
         if not dbname:
-            dbname = self.dbConfig['dbname']
+            dbname = self.db_config['dbname']
         if not tbname:
-            if 'tbname' in self.dbConfig:
-                tbname = self.dbConfig['tbname']
+            if 'tbname' in self.db_config:
+                tbname = self.db_config['tbname']
             else:
-                raise Exception('请在self.dbConfig传入表名或在insert函数传入表名')
+                raise Exception('请在self.db_config传入表名或在insert函数传入表名')
 
         if tbname.find('.') > 0:
             tbname = tbname.split('.')[-1]

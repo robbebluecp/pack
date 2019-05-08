@@ -1,83 +1,87 @@
 import numpy as np
-from pyhanlp import *
 import os
 import pickle
+from pyhanlp import HanLP
+
+current_path = os.getcwd()
 
 
 class Word2Vec:
     """
-    假设输入至少需要两个部分
-    一部分是文本，以列表形式存储，如：['我们是中国人，我们爱自己的祖国', '蜀道难，难于上青天']
-    一部分是语料库，以键值对组成，如：{'我们':[20.78, 276.12, .....]}, 要求向量空间为numpy格式，非list格式
+    简洁版词向量转换脚本
+
+    :param  sentence_list       :   传入的句子，以列表形式存储。如['我们是中国人，我们爱自己的祖国', '蜀道难，难于上青天']
+    :param  vec_space           :   词向量空间，如{'的': [.....], '银行': [......]}
+    :param  file_name           :   如果没有传入vec_apace，请传入其他格式的文本，此处以[https://github.com/Embedding/Chinese-Word-Vectors]的嵌入语料库为基准
+                                        如果是其他形式的词向量，建议重写load_vec_space函数
+    :param  overload_space      :   是否重新生成新的词向量映射表，一般用于修改 「语料库」 的情况下置为True
+    :param  overload_sentence   :   是否重新生成新的句子向量映射表，一般用于修改 「输入句子」 的情况下置为True
+
+    example:
+        a = '他说的是假话'
+        b = '他骗人'
+        w2v = nlp.Word2Vec(sentence_list=[a, b], file_name='sgns.financial.char')
+        # 语料库来源于：[https://github.com/Embedding/Chinese-Word-Vectors]
+        print(w2v.sentence_mapping)
+        v_a, v_b = w2v.sentence_mapping[a], w2v.sentence_mapping[b]
+        print('余弦相似度:', w2v.cosine_similarity(v_a, v_b))
 
     """
 
-    def __init__(self, sentence_list, word_bag=None, diy=True, file_name=None):
-        if diy:
-            self.word_bag = self.diy(file_name)
-        else:
-            self.word_bag = word_bag
+    def __init__(self, sentence_list, vec_space=None, file_name=None, overload_space=False, overload_sentence=False):
+
         self.sentence_list = sentence_list
-        self.char_mapping, self.vec_mapping = self.get_char_mapping()
-        self.dim = len(self.char_mapping['的'])  # - -
-        self.char_mapping_plus, self.vec_mapping_plus = self.get_sentence_mapping()
+        if not vec_space:
+            self.vec_space = self.load_vec_space(file_name, overload=overload_space)
+        else:
+            self.vec_space = vec_space
+        # 单词单字映射表
+        # {'的': [....], '人民银行': [....]}
+        self.char_mapping = self.vec_space
+        self.dim = len(self.char_mapping['的'])
+        # 句子映射表
+        # {'我们是中国人': [......]}
+        self.sentence_mapping = self.get_sentence_mapping(overload=overload_sentence)
 
-    def diy(self, file_name):
-        with open(file_name, 'r') as f:
-            items = f.readlines()[1:]
-            f.close()
-        word_bag = {}
-        for item in items:
-            info = item.split(' ')
-            key = info[0]
-            values = np.asarray(info[1:-1], dtype=np.float)
-            word_bag[key] = values
-        return word_bag
-
-    def get_char_mapping(self):
+    def load_vec_space(self, file_name, overload=False):
         """
-        加载或计算词向量
-        :return:
+
+        :param file_name:   解析传入的文件，转成pkl文件
+        :return:            vec_space,如： {'的': [.....], '银行': [......]}
         """
-        current_path = os.getcwd()
-        char_to_sum_file = current_path + '/char_to_sum.pkl'
-        sum_to_char_file = current_path + '/sum_to_char.pkl'
-        if not os.path.isfile(char_to_sum_file) or not os.path.isfile(sum_to_char_file):
-            char_to_sum = {}
-            sum_to_char = {}
-
-            for key in self.word_bag:
-                sum_ = str(np.sum(self.word_bag[key]))
-                char_to_sum[key] = self.word_bag[key]
-                sum_to_char[sum_] = key
-
-            with open(char_to_sum_file, 'wb') as f:
-                pickle.dump(char_to_sum, f)
+        vec_space_file = current_path + '/char_mapping.pkl'
+        if not os.path.isfile(vec_space_file) or overload:
+            print('首次加载词向量时间较长，请稍等......')
+            with open(file_name, 'r') as f:
+                items = f.readlines()[1:]
                 f.close()
-
-            with open(sum_to_char_file, 'wb') as f:
-                pickle.dump(sum_to_char, f)
+            vec_space = {}
+            for item in items:
+                info = item.split(' ')
+                key = info[0]
+                values = np.asarray(info[1:-1], dtype=np.float)
+                vec_space[key] = values
+            with open(vec_space_file, 'wb') as f:
+                pickle.dump(vec_space, f)
                 f.close()
         else:
-            with open(char_to_sum_file, 'rb') as f:
-                char_to_sum = pickle.load(f)
+            with open(vec_space_file, 'rb') as f:
+                vec_space = pickle.load(f)
                 f.close()
+        return vec_space
 
-            with open(sum_to_char_file, 'rb') as f:
-                sum_to_char = pickle.load(f)
-                f.close()
-        return char_to_sum, sum_to_char
-
-    def get_sentence_mapping(self):
-        current_path = os.getcwd()
-        char_to_sum_plus_file = current_path + '/char_to_sum_plus.pkl'
-        sum_to_char_plus_file = current_path + '/sum_to_char_plus.pkl'
-        if not os.path.isfile(char_to_sum_plus_file) or not os.path.isfile(sum_to_char_plus_file):
-            char_to_sum_plus = {}
-            sum_to_char_plus = {}
+    def get_sentence_mapping(self, overload=False):
+        """
+        句子映射表
+        :return:    vec_space,如： {'我们是中国人，我们爱自己的祖国':[......], '蜀道难，难于上青天':[......]}
+        """
+        sentence_to_vec_file = current_path + '/sentence_mapping.pkl'
+        if not os.path.isfile(sentence_to_vec_file) or overload:
+            print('首次加载句子时间较长，请稍等......')
+            sentence_to_vec = {}
             for sentence in self.sentence_list:
                 tmp = np.zeros(shape=self.dim)
-                index = 1
+                index = 0
                 for obj in HanLP.segment(sentence):
                     word = obj.word
                     if word in self.char_mapping:
@@ -86,39 +90,85 @@ class Word2Vec:
                         tmp += np.zeros(shape=self.dim)
                     index += 1
                 tmp /= index
-                char_to_sum_plus[sentence] = tmp
-                sum_to_char_plus[str(np.sum(tmp))] = sentence
+                sentence_to_vec[sentence] = tmp
 
-                with open(char_to_sum_plus_file, 'wb') as f:
-                    pickle.dump(char_to_sum_plus, f)
+                with open(sentence_to_vec_file, 'wb') as f:
+                    pickle.dump(sentence_to_vec, f)
                     f.close()
 
-                with open(sum_to_char_plus_file, 'wb') as f:
-                    pickle.dump(sum_to_char_plus, f)
-                    f.close()
         else:
-            with open(char_to_sum_plus_file, 'rb') as f:
-                char_to_sum_plus_file = pickle.load(f)
+            with open(sentence_to_vec_file, 'rb') as f:
+                sentence_to_vec = pickle.load(f)
                 f.close()
 
-            with open(sum_to_char_plus_file, 'rb') as f:
-                sum_to_char_plus_file = pickle.load(f)
-                f.close()
-
-        return char_to_sum_plus_file, sum_to_char_plus_file
+        return sentence_to_vec
 
     @staticmethod
     def cosine_similarity(v1, v2):
+        """
+        计算两个向量的余弦相似度
+        :param v1: 向量1
+        :param v2: 向量2
+        :return:
+        """
         # 余弦距离
-        v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
+        if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
+            v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
         up = np.dot(v1, v2)
         down = np.linalg.norm(v1) * np.linalg.norm(v2)
         return round(up / down, 6)
 
     @staticmethod
     def euclid_distince(v1, v2):
+        """
+        计算两个向量的欧氏距离
+        :param v1: 向量1
+        :param v2: 向量2
+        :return:
+        """
         # 欧氏距离
+        if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
+            v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
         v1 /= np.sum(v1)
         v2 /= np.sum(v2)
-        v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
         return round(np.linalg.norm(v1 - v2), 6)
+
+
+from sklearn.cluster import KMeans
+
+
+class Kmeans:
+
+    def __init__(self, vectors, sentence=None, cluster_n=5, sample_n=5, max_iter=1000):
+        self.vectors = vectors
+        self.sentence = sentence
+        self.result = self.fit(cluster_n=cluster_n, sample_n=sample_n, max_iter=max_iter)
+
+    def fit(self, cluster_n=5, sample_n=5, max_iter=1000):
+        info = KMeans(n_clusters=cluster_n, random_state=0, max_iter=max_iter).fit(self.vectors)
+        lables = info.labels_
+        centers = info.cluster_centers_
+        # dic = {'0': {'indexs':[20, 28, 46...], 'info': [[adasd], [adh]......]}}
+        dic = {}
+        for i in range(cluster_n):
+            dic['%s' % i] = dict()
+            dic['%s' % i]['indexs'] = np.where(lables == i)[0][:sample_n]
+            dic['%s' % i]['info'] = []
+            dic['%s' % i]['center'] = centers[i]
+            for index in dic['%s' % i]['indexs']:
+                distance = Word2Vec.euclid_distince(centers[i], self.vectors[j])
+                if self.sentence:
+                    dic['%s' % i]['info'].append(
+                        {'index': index,
+                         'vector': self.vectors[index],
+                         'sentence': self.sentence[index],
+                         'distance': distance}
+                    )
+                else:
+                    dic['%s' % i]['info'].append(
+                        {'index': index,
+                         'vector': self.vectors[index],
+                         'distance': distance}
+                    )
+            dic['%s' % i]['info'] = sorted(dic['%s' % i]['info'], key=lambda x: x['distance'])
+        return dic
