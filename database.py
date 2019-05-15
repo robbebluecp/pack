@@ -27,11 +27,13 @@ class Database:
         db_config={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, host='localhost', port='3306', user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
+    def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
         self.db_config = copy.deepcopy(locals())
         self.mode = int(mode)
         self.host = host
         self.port = port
+        if self.mode == 2:
+            self.port=1433
         self.user = user
         self.passwrod = password
         self.dbname = dbname
@@ -42,7 +44,7 @@ class Database:
         
 
     @staticmethod
-    def get_con(host='localhost', port='3306', user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
+    def get_con(host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
         """
         :param host         :       服务器地址
         :param user         :       用户名
@@ -56,6 +58,8 @@ class Database:
         mode = int(mode)
         host = host
         port = port
+        if mode == 2:
+            port = 1433
         user = user
         passwrod = password
         dbname = dbname
