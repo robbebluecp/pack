@@ -98,7 +98,7 @@ class Crawl:
         其中：形如User-Agent等包含“-”字符的参数名，“-”需改为“_”
         :return(None):
         '''
-        urlConfig_ = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0'}
+        urlConfig_ = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/55.0'}
 
         crawlConfig_ = {'timeout': self.timeout,
                         'encoding': self.encoding,
@@ -115,7 +115,7 @@ class Crawl:
             crawlConfig_.update({x: self.kwargs[x] for x in self.kwargs if
                                  type(x) == str and self.kwargs[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
         else:
-            crawlConfig_.update({x: self.kwargs[x] for x in self.crawlConfig if
+            crawlConfig_.update({x: self.crawlConfig[x] for x in self.crawlConfig if
                                  type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
 
         self.urlConfig, self.crawlConfig = urlConfig_, crawlConfig_
@@ -179,6 +179,7 @@ class Crawl:
                 log.critical('...' + str(e))
         log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
         self.html = None
+
 
 
 crawl = Crawl

@@ -27,24 +27,41 @@ class Database:
         db_config={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
-        self.db_config = copy.deepcopy(locals())
-        self.mode = int(mode)
-        self.host = host
-        self.port = port
-        if self.mode == 2:
-            self.port=1433
-        self.user = user
-        self.passwrod = password
-        self.dbname = dbname
-        self.tbname = tbname
-        self.charset = charset
-        self.con = self.get_con(**self.db_config)
+    def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log',
+                 charset='utf8', dbConfig=None, **kwargs):
+        if dbConfig:
+            self.mode = int(dbConfig['mode'])
+            self.host = dbConfig['host']
+            if self.mode == 2:
+                self.port = 1433
+            else:
+                self.port = 3306
+            self.user = dbConfig['user']
+            self.password = dbConfig['password']
+            self.dbname = dbConfig['dbname']
+            self.tbname = dbConfig['tbname']
+            if 'charset' in dbConfig:
+                self.charset = dbConfig['charset']
+            else:
+                self.charset = charset
+        else:
+            self.mode = int(mode)
+            self.host = host
+            self.port = port
+            if self.mode == 2:
+                self.port = 1433
+            self.user = user
+            self.password = password
+            self.dbname = dbname
+            self.tbname = tbname
+            self.charset = charset
+        self.con = self.get_con(host=self.host, port=self.port, user=self.user, password=self.password, mode=self.mode,
+                                dbname=self.dbname, tbname=self.tbname, charset=self.charset)
         self.cur = self.con.cursor()
-        
 
     @staticmethod
-    def get_con(host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log', charset='utf8', **kwargs):
+    def get_con(host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log',
+                charset='utf8', **kwargs):
         """
         :param host         :       服务器地址
         :param user         :       用户名
@@ -55,38 +72,28 @@ class Database:
             db_config={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
         """
 
-        mode = int(mode)
-        host = host
-        port = port
-        if mode == 2:
-            port = 1433
-        user = user
-        passwrod = password
-        dbname = dbname
-        tbname = tbname
-        charset = charset
         if mode == 1:
+            print('here')
             con = pymysql.connect(host='%s' % host, user='%s' % user, port=int(port),
-                                  password='%s' % passwrod, charset=charset, database=dbname)
+                                  password='%s' % password, charset=charset, database=dbname)
 
         elif mode == 2:
             con = pymssql.connect(server='%s' % host, user='%s' % user, port='%s' % port,
-                                  password='%s' % passwrod, database='%s' % dbname, charset=charset)
+                                  password='%s' % password, database='%s' % dbname, charset=charset)
             pymssql.set_max_connections(200000)
         return con
 
-    def build(self,dbname,tbname, data, mode):
+    def build(self, dbname, tbname, data, mode):
         """
            插入方法sql语句封装
            @:param see method "insert"
         """
         field = list(data.keys())
 
-
         # sql for mysql, with params of type dict
         if mode == 1:
 
-            data = {key: data[key] if isinstance(data[key], (bytes, )) else str(data[key]) for key in data }
+            data = {key: data[key] if isinstance(data[key], (bytes,)) else str(data[key]) for key in data}
             sql = """insert into %s.%s(%s)values(%s)""" % (
                 dbname, tbname, str(field)[1:-1].replace("'", ''),
                 '%(' + ('-'.join(field)).replace('-', ')s,%(') + ')s')
@@ -109,7 +116,7 @@ class Database:
         """
         return dict(data)
 
-    def insert(self,data,dbname=None,tbname=None,mode=None):
+    def insert(self, data, dbname=None, tbname=None, mode=None):
         """
         封装插入方法，以字典或列表包含字典或列表包含元组形式.
         :param dbname       :          库名
@@ -128,23 +135,20 @@ class Database:
         And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
         """
         if mode is None:
-            mode = self.db_config['mode']
+            mode = self.mode
 
         if not dbname:
-            dbname = self.db_config['dbname']
+            dbname = self.dbname
+
         if not tbname:
-            if 'tbname' in self.db_config:
-                tbname = self.db_config['tbname']
-            else:
-                raise Exception('请在self.db_config传入表名或在insert函数传入表名')
+            tbname = self.tbname
 
         if tbname.find('.') > 0:
             tbname = tbname.split('.')[-1]
 
         # type dict
         if type(data) == dict:
-
-            result = self.build(dbname,tbname, data, mode)
+            result = self.build(dbname, tbname, data, mode)
             self.cur.execute(result[0], result[1])
             self.con.commit()
 
