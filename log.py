@@ -18,9 +18,11 @@ examples:
     (1) log.critical('This is A critical message')
 """
 # 路径提取操作在程序链式启动时会出现问题，使用如下方法进行fix
-path = (os.path.dirname(sys.argv[0]) + '/').replace('//', r'/')
-if platform.platform().lower().find('linux') >= 0:
-  path = os.getcwd() + '/'
+# path = (os.path.dirname(sys.argv[0]) + '/').replace('//', r'/')
+# if platform.platform().lower().find('linux') >= 0:
+#   path = os.getcwd() + '/'
+
+ath = os.getcwd() + '/'
 
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()
