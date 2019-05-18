@@ -22,7 +22,9 @@ examples:
 # if platform.platform().lower().find('linux') >= 0:
 #   path = os.getcwd() + '/'
 
-ath = os.getcwd() + '/'
+path = os.path.dirname(os.path.abspath(__file__)) + '/'
+if path.find('pack') >= 0:
+    path = os.getcwd() + '/'
 
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()
