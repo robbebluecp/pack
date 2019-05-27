@@ -18,6 +18,9 @@ examples:
     (1) log.critical('This is A critical message')
 """
 path = os.path.dirname(os.path.abspath(__file__)) + '/'
+if path.find('pack') >= 0:
+  path = os.getcwd() + '/'
+print(path)
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()
 criticalFilter = logging.Filter()
