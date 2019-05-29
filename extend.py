@@ -51,10 +51,8 @@ def cprint(*char, c=None):
         print(*char)
         return
 
-    if len(char) > len(c):
-        print('字符长度和颜色长度不一致, 返回原始字体')
-        print(*char)
-        return
+    if len(char) > len(c) and isinstance(c, list):
+        c = c[0]
 
     try:
         if type(c) == str and c in dic:
