@@ -73,7 +73,6 @@ class Database:
         """
 
         if mode == 1:
-            print('here')
             con = pymysql.connect(host='%s' % host, user='%s' % user, port=int(port),
                                   password='%s' % password, charset=charset, database=dbname)
 
