@@ -1,5 +1,5 @@
 
-![MY_LOGO](https://github.com/yfyvan/tmp/blob/master/cute.jpeg)
+![MY_LOGO](https://github.com/yfyvan/tmp/blob/master/cute.png)
 
 ## 包说明
 
