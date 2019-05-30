@@ -30,7 +30,7 @@ nlp常用模块，当前制作了"词向量"类和"聚类"两个类，后续会�
 - __[useragent.py](https://github.com/yfyvan/pack/blob/master/useragent.py)__   
 收集的一些请求头信息
 
--__[spark_tools.py](https://github.com/yfyvan/pack/blob/master/spark_tools.py)__  
+- __[spark_tools.py](https://github.com/yfyvan/pack/blob/master/spark_tools.py)__  
 用于python对接spark的入口，已可用，待完善
 
 ## Installation
