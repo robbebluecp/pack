@@ -156,10 +156,14 @@ class Crawl:
                     res = opener.open(req)
                     if res.status != 200:
                         raise Exception('status code is not 200 ! ')
-                    if self.isBinary:
-                        self.html = res.read()
-                    else:
-                        self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
+                    try:
+                        if self.isBinary:
+                            self.html = res.read()
+                        else:
+                            self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
+                    except http.client.IncompleteRead as e:
+                        log.error('IncompleteRead Error, Url: %s' % self.url)
+                        self.html = e.partial.decode(self.crawlConfig['encoding'], errors='ignore')
                     opener.close()
                     return self.html
 

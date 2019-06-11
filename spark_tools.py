@@ -21,5 +21,5 @@ class SparkSQL:
                                               table="%(dbname)s.%(tbname)s" % self.dbConfig,
                                               properties={"user": self.dbConfig['user'], "password": self.dbConfig['password']})
         self.spark_con.createOrReplaceTempView(self.dbConfig['tbname'])
-
+        
 
