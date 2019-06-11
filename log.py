@@ -28,6 +28,8 @@ errorFilter = logging.Filter()
 criticalFilter = logging.Filter()
 
 # 区分日志等级
+infoFilter.filter = lambda level: 20 <= level.levelno <= 20
+debugFilter.filter = lambda level: 10 <= level.levelno <= 10
 warningFilter.filter = lambda level: 30 <= level.levelno <= 30
 errorFilter.filter = lambda level: 40 <= level.levelno <= 40
 criticalFilter.filter = lambda level: 50 <= level.levelno <= 50
@@ -66,6 +68,8 @@ console.setFormatter(consoleFormat)
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
+log.addHandler(infoOperation)
+log.addHandler(debugOperation)
 log.addHandler(warningOperation)
 log.addHandler(errorOperation)
 log.addHandler(criticalOperation)
