@@ -30,20 +30,17 @@ class Database:
     def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log',
                  charset='utf8', dbConfig=None, **kwargs):
         if dbConfig:
-            self.mode = int(dbConfig['mode'])
-            self.host = dbConfig['host']
+            self.mode = int(dbConfig['mode']) if dbConfig.get('mode') else mode
+            self.host = dbConfig['host'] if dbConfig.get('host') else host
             if self.mode == 2:
                 self.port = 1433
             else:
                 self.port = 3306
-            self.user = dbConfig['user']
-            self.password = dbConfig['password']
-            self.dbname = dbConfig['dbname']
-            self.tbname = dbConfig['tbname']
-            if 'charset' in dbConfig:
-                self.charset = dbConfig['charset']
-            else:
-                self.charset = charset
+            self.user = dbConfig['user'] if dbConfig.get('user') else user
+            self.password = dbConfig['password'] if dbConfig.get('password') else password
+            self.dbname = dbConfig['dbname'] if dbConfig.get('dbname') else dbname
+            self.tbname = dbConfig['tbname'] if dbConfig.get('tbname') else tbname
+            self.charset = dbConfig['charset'] if dbConfig.get('charset') else charset
         else:
             self.mode = int(mode)
             self.host = host
