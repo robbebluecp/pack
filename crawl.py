@@ -58,7 +58,7 @@ class Crawl:
             or
             html = crawl.crawl('https://www.baidu.com',}, urlConfig={'Host': 'baidu.com', 'Cookie': 'xxxxxx'})
     """
-    def __init__(self, url, timeout=5, encoding='utf8', maxtime=5, data=None, dateType='str', isProxy=False, proxyPools=None, crawlConfig=None, urlConfig=None, isBinary=False, **kwargs):
+    def __init__(self, url, timeout=5, encoding='utf8', maxtime=5, data=None, dateType='str', isProxy=False, proxyPools=None, crawlConfig=None, urlConfig=None, isBinary=False, useSSL=False, **kwargs):
         self.url = url
         self.timeout = timeout
         self.maxtime = maxtime
@@ -79,6 +79,12 @@ class Crawl:
 
         self.parse_config()
         self.run()
+        if useSSL:
+            try:
+                import ssl
+                ssl._create_default_https_context = ssl._create_unverified_context
+            except Exception as e:
+                print('Can not import ssl, check if successfully install python, Error: --->>>  ', str(e))
 
     def get_proxy(self):
         '''
