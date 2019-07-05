@@ -20,6 +20,8 @@ def time_stamp(time_int):
     examples:
             print(time_stamp(1547111111))
     '''
+    if isinstance(time_int, str):
+        time_int = int(time_int[:10])
     chTime = time.localtime(time_int)
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
@@ -27,6 +29,20 @@ def time_stamp(time_int):
 # 当前时间转固定格式
 def time_to_char():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
+# 定时器
+def control(star_time: int, cycle: int = 86400, scope: int = 100):
+    """
+
+    :param star_time:       任务开始时间
+    :param cycle:           任务周期
+    :param scope:           开始时间波动范围
+    :return:
+    """
+    if scope + star_time * 3600 <= (int(time.time()) + 8 * 3600) % cycle <= scope * 2 + star_time * 3600:
+        return 1
+    else:
+        return 0
 
 # pycharm专用，颜色字体打印
 def cprint(*char, c=None):
