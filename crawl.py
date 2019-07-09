@@ -78,13 +78,14 @@ class Crawl:
         self.html = None
 
         self.parse_config()
-        self.run()
         if useSSL:
             try:
                 import ssl
                 ssl._create_default_https_context = ssl._create_unverified_context
             except Exception as e:
                 print('Can not import ssl, check if successfully install python, Error: --->>>  ', str(e))
+        self.run()
+
 
     def get_proxy(self):
         '''

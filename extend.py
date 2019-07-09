@@ -31,7 +31,7 @@ def time_to_char():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # 定时器
-def control(star_time: int, cycle: int = 86400, scope: int = 100):
+def control(star_time: int or float, cycle: int or float = 86400, scope: int or float = 100):
     """
 
     :param star_time:       任务开始时间
