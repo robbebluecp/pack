@@ -3,15 +3,20 @@ import time
 import datetime
 import numpy as np
 from hashlib import md5
+try:
+    import database
+except:
+    from . import database
 
 
 def get_md5(char):
+    char = str(char)
     m = md5()
     m.update(char.encode('utf8'))
     return m.hexdigest()
 
 
-def time_stamp(time_int):
+def time_stamp(time_int: int or str):
     '''
     时间戳转GTM+8（东八区）时间,
     :param time_int(int):       十位数时间戳
@@ -31,7 +36,9 @@ def time_to_char():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # 定时器
-def control(star_time: int or float, cycle: int or float = 86400, scope: int or float = 100):
+def control(star_time: int or float,
+            cycle: int or float = 86400,
+            scope: int or float = 100):
     """
 
     :param star_time:       任务开始时间
@@ -43,6 +50,35 @@ def control(star_time: int or float, cycle: int or float = 86400, scope: int or 
         return 1
     else:
         return 0
+
+# 日志插入
+def log_insert(sql_con : database.Database,
+               task_id: int or str,
+               start_time: datetime.datetime,
+               shard_id: int or str=0):
+    start_time = datetime.datetime.now()
+    sql_con.insert(dbname='main', tbname='spyder_logs', data={'task_id': task_id,
+                                                                'shard_id' : shard_id,
+                                                                'start_time': start_time,
+                                                                })
+
+# 日志更新
+def log_update(sql_con : database.Database,
+               task_id: int or str,
+               start_time: datetime.datetime):
+    if sql_con.mode == 1:
+        name = 'main.spyder_logs'
+    elif sql_con.mode == 2:
+        name = 'main.dbo.spyder_logss'
+    end_time = datetime.datetime.now()
+    if len(str(start_time)) == 26:
+        start_time = str(start_time)[:-7]
+    sql_con.execute("""update %(name)s set end_time = '%(end_time)s' where start_time = '%(start_time)s' and task_id='%(task_id)s'"""
+                      % {'name': name, 'end_time': end_time, 'task_id': task_id, 'start_time': start_time})
+
+    sql_con.commit()
+
+
 
 # pycharm专用，颜色字体打印
 def cprint(*char, c=None):
