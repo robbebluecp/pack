@@ -9,7 +9,7 @@ import os
 
 
 class Log:
-    def __init__(self,
+    def __init__(self, path,
                  warning_size: int = 1, warning_backup_num: int = 2, warning_notice: str = None,
                  error_size: int = 10, error_backup_num: int = 5, error_notice: str = None,
                  critical_size: int = 5, critical_backup_num: int = 2, critical_notice: str = None):
@@ -30,9 +30,10 @@ class Log:
         self.head = 'z'
 
         # 日志文件路径
-        path = os.path.dirname(os.path.abspath(__file__)) + '/'
-        if path.find('pack') >= 0:
-            path = os.getcwd() + '/'
+        if not path:
+            path = os.path.dirname(os.path.abspath(__file__)) + '/'
+            if path.find('pack') >= 0:
+                path = os.getcwd() + '/'
         self.path = path
 
         # 设置50级别的日志打印出控制台
