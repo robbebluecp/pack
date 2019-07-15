@@ -8,7 +8,7 @@ try:
 except:
     print('module "pymssql" is not avalable for your recent system circustance')
     pass
-import copy
+import datetime
 
 
 class Database:
@@ -157,6 +157,32 @@ class Database:
                     result = self.tuple_to_dict(m_data)
                 self.cur.execute(result[0], result[1])
                 self.con.commit()
+
+    # 日志插入
+    def log_insert(self,
+                   task_id: int or str,
+                   start_time: datetime.datetime,
+                   shard_id: int or str = 0):
+        self.insert(dbname='main', tbname='spyder_logs', data={'task_id': task_id,
+                                                               'shard_id': shard_id,
+                                                               'start_time': start_time,
+                                                               })
+
+    # 日志更新
+    def log_update(self,
+                   task_id: int or str,
+                   start_time: datetime.datetime):
+        if self.mode == 1:
+            name = 'main.spyder_logs'
+        elif self.mode == 2:
+            name = 'main.dbo.spyder_logss'
+        end_time = datetime.datetime.now()
+        if len(str(start_time)) == 26:
+            start_time = str(start_time)[:-7]
+        self.execute("""update %(name)s set end_time = '%(end_time)s' where start_time = '%(start_time)s' and task_id='%(task_id)s'"""
+                        % {'name': name, 'end_time': end_time, 'task_id': task_id, 'start_time': start_time})
+
+        self.commit()
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)

@@ -51,34 +51,6 @@ def control(star_time: int or float,
     else:
         return 0
 
-# 日志插入
-def log_insert(sql_con : database.Database,
-               task_id: int or str,
-               start_time: datetime.datetime,
-               shard_id: int or str=0):
-    start_time = datetime.datetime.now()
-    sql_con.insert(dbname='main', tbname='spyder_logs', data={'task_id': task_id,
-                                                                'shard_id' : shard_id,
-                                                                'start_time': start_time,
-                                                                })
-
-# 日志更新
-def log_update(sql_con : database.Database,
-               task_id: int or str,
-               start_time: datetime.datetime):
-    if sql_con.mode == 1:
-        name = 'main.spyder_logs'
-    elif sql_con.mode == 2:
-        name = 'main.dbo.spyder_logss'
-    end_time = datetime.datetime.now()
-    if len(str(start_time)) == 26:
-        start_time = str(start_time)[:-7]
-    sql_con.execute("""update %(name)s set end_time = '%(end_time)s' where start_time = '%(start_time)s' and task_id='%(task_id)s'"""
-                      % {'name': name, 'end_time': end_time, 'task_id': task_id, 'start_time': start_time})
-
-    sql_con.commit()
-
-
 
 # pycharm专用，颜色字体打印
 def cprint(*char, c=None):
