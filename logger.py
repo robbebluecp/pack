@@ -9,7 +9,7 @@ import os
 
 
 class Log:
-    def __init__(self, path,
+    def __init__(self, path=None,
                  warning_size: int = 1, warning_backup_num: int = 2, warning_notice: str = None,
                  error_size: int = 10, error_backup_num: int = 5, error_notice: str = None,
                  critical_size: int = 5, critical_backup_num: int = 2, critical_notice: str = None):
