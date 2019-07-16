@@ -163,6 +163,8 @@ class Database:
                    task_id: int or str,
                    start_time: datetime.datetime,
                    shard_id: int or str = 0):
+        if len(str(start_time)) == 26:
+            start_time = str(start_time)[:-7]
         self.insert(dbname='main', tbname='spyder_logs', data={'task_id': task_id,
                                                                'shard_id': shard_id,
                                                                'start_time': start_time,
@@ -181,7 +183,7 @@ class Database:
             start_time = str(start_time)[:-7]
         self.execute("""update %(name)s set end_time = '%(end_time)s' where start_time = '%(start_time)s' and task_id='%(task_id)s'"""
                         % {'name': name, 'end_time': end_time, 'task_id': task_id, 'start_time': start_time})
-
+       
         self.commit()
 
     def execute(self, sql, *params):
