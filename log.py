@@ -1,5 +1,5 @@
 import logging
-from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
+from logging.handlers import RotatingFileHandler
 import os
 import sys
 import platform
