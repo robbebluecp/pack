@@ -1,5 +1,5 @@
 import logging
-from logging.handlers import RotatingFileHandler
+from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
 import os
 import sys
 import platform
@@ -39,6 +39,7 @@ infoOperation = RotatingFileHandler(path + 'z_info.log', maxBytes=1 * 1024 * 102
 infoOperation.addFilter(infoFilter)
 infoFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 infoOperation.setFormatter(infoFormat)
+
 
 debugOperation = RotatingFileHandler(path + 'z_debug.log', maxBytes=1 * 1024 * 1024, backupCount=1)
 debugOperation.addFilter(debugFilter)
