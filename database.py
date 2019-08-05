@@ -9,13 +9,13 @@ except:
     print('module "pymssql" is not avalable for your recent system circustance')
     pass
 import datetime
+import os, sys
 
 
 class Database:
     """
     该class集成pymssql和pymysql的使用方法，主要做了对insert功能的封装
     其中 1 表示 mysql， 2 表示 sqlserver
-    注：2019/04/04 对2表示的pyodbc进行移除，转成pymssl，将来对sqlserver的存储皆使用pymssql，即：2模式
 
     :param host         :       服务器地址
     :param user         :       用户名
@@ -83,52 +83,49 @@ class Database:
         """
            插入方法sql语句封装
            @:param see method "insert"
-        """
-        field = list(data.keys())
 
-        # sql for mysql, with params of type dict
+           data: [(field1, field2, field3, ....), [(data1, data2, data3,...), (data1, data2, data3,...), ......]]
+        """
+        field = data[0]
+
+        values = data[1]
+
         if mode == 1:
 
-            data = {key: data[key] if isinstance(data[key], (bytes,)) else str(data[key]) for key in data}
-            sql = """insert into %s.%s(%s)values(%s)""" % (
-                dbname, tbname, str(field)[1:-1].replace("'", ''),
-                '%(' + ('-'.join(field)).replace('-', ')s,%(') + ')s')
-            return sql, data
+            sql = """insert into %s.%s %s values ({})""" % (
+                dbname,
+                tbname,
+                str(field).replace("'", '`')
+            )
+            sql = sql.format(('%s,' * len(field))[:-1])
+            return sql, values
 
-        # sql for pymssql, with params of type tuple
         elif mode == 2:
-            value = [str(data[x]) for x in field]
-            sql = """insert into %s.dbo.%s(%s)values(%s)""" % (
-                dbname, tbname, str(field).replace(", ", '],[').replace("'", ''),
-                str('%s,' * len(field))[0:-1])
-            return sql, tuple(value)
-
-    @staticmethod
-    def tuple_to_dict(data):
-        """
-        把tuple类型的数据格式转成dict类型
-        :param data:    以元组形式存放的list，如：[('name':'罗大黑'), ('age': 25)]
-        :return:        以字典形式存放的list，如：{'name': '罗大黑', 'age': 25}
-        """
-        return dict(data)
+            sql = """insert into %s.dbo.%s %s values ({})""" % (
+                dbname,
+                tbname,
+                str(field).replace("'", '')
+            )
+            sql = sql.format(('%s,' * len(field))[:-1])
+            return sql, values
 
     def insert(self, data, dbname=None, tbname=None, mode=None):
         """
+
+        2019-08-05 全部改用insertmany方法，速度提升约五倍
+
         封装插入方法，以字典或列表包含字典或列表包含元组形式.
         :param dbname       :          库名
         :param tbname       :          表明
-        :param data         :          数据集，以字典或列表包含字典或列表包含元组形式
-                                       字典           {'a': 1, 'b': 2}
-                                       列表包含字典    [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
-                                       列表包含元组    [(a, 1), (b, 2)]
+        :param data         :          数据集，为如下形式
+
+                                       data = [(field1, field2, field3, ......),
+                                               [(data1, data2, data3, ...), (data1, data2, data3, ...), (data1, data2, data3, ...)]
+
         :param mode         :          mode, different mode leads to different database system
-        If mode == 1, the insert sql looks like :
-            insert into dbname.tbname (field1, field2, field3) values (%(field1)s, %(field2)s, %(field3)s)
-        # if mode == 2:
-        #     insert into dbname.tbname (field1, field2, field3) values (?, ?, ?)
-        if mode == 3:
-            insert into dbname,tbname (field1, field2, field3) values (%s, %s, %s)......
-        And your data should be like data={'itemid': xxx, 'itemtitle': xxx}
+
+        insert into dbname.tbname (field1, field2, field3) values (%s, %s, %s)
+
         """
         if mode is None:
             mode = self.mode
@@ -142,49 +139,10 @@ class Database:
         if tbname.find('.') > 0:
             tbname = tbname.split('.')[-1]
 
-        # type dict
-        if type(data) == dict:
-            result = self.build(dbname, tbname, data, mode)
-            self.cur.execute(result[0], result[1])
-            self.con.commit()
-
         # type list with dict or tuple
-        if type(data) == list:
-            for m_data in data:
-                if isinstance(m_data, dict):
-                    result = self.build(dbname, tbname, m_data, mode)
-                elif isinstance(m_data, list):
-                    result = self.tuple_to_dict(m_data)
-                self.cur.execute(result[0], result[1])
-                self.con.commit()
-
-    # 日志插入
-    def log_insert(self,
-                   task_id: int or str,
-                   start_time: datetime.datetime,
-                   shard_id: int or str = 0):
-        if len(str(start_time)) == 26:
-            start_time = str(start_time)[:-7]
-        self.insert(dbname='main', tbname='spyder_logs', data={'task_id': task_id,
-                                                               'shard_id': shard_id,
-                                                               'start_time': start_time,
-                                                               })
-
-    # 日志更新
-    def log_update(self,
-                   task_id: int or str,
-                   start_time: datetime.datetime):
-        if self.mode == 1:
-            name = 'main.spyder_logs'
-        elif self.mode == 2:
-            name = 'main.dbo.spyder_logss'
-        end_time = datetime.datetime.now()
-        if len(str(start_time)) == 26:
-            start_time = str(start_time)[:-7]
-        self.execute("""update %(name)s set end_time = '%(end_time)s' where start_time = '%(start_time)s' and task_id='%(task_id)s'"""
-                        % {'name': name, 'end_time': end_time, 'task_id': task_id, 'start_time': start_time})
-       
-        self.commit()
+        result = self.build(dbname, tbname, data, mode)
+        self.cur.executemany(result[0], result[1])
+        self.con.commit()
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
