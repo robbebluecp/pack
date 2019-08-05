@@ -86,9 +86,15 @@ class Database:
 
            data: [(field1, field2, field3, ....), [(data1, data2, data3,...), (data1, data2, data3,...), ......]]
         """
-        field = data[0]
-
-        values = data[1]
+        if isinstance(data, dict):
+            field = tuple(data.keys())
+            values = [tuple(data[x] for x in field)]
+        elif isinstance(data, list) and isinstance(data[0], dict):
+            field = tuple(data[0].keys())
+            values = [tuple(sub_data[x] for x in sub_data) for sub_data in data]
+        else:
+            field = data[0]
+            values = data[1]
 
         if mode == 1:
 
