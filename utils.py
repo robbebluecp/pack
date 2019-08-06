@@ -43,3 +43,22 @@ def softmax(x_input):
 
 def sigmoid(x_input):
     return 1.0 / (1.0 + np.exp(-(np.asarray(x_input, dtype=np.float))))
+
+def corrcoef(a, b):
+    """
+    相关系数计算
+    :param a:   
+    :param b:
+    :return:
+    """
+    a, b = np.asarray(a, np.float), np.asarray(b, np.float)
+    Ea = np.mean(a)
+    Eb = np.mean(b)
+    Eab = np.mean(a * b)
+    Da = np.var(a)
+    Db = np.var(b)
+
+    COVab = Eab - Ea * Eb
+
+    result = COVab / np.sqrt(Da) / np.sqrt(Db)
+    return result
