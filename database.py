@@ -94,6 +94,8 @@ class Database:
             values = [tuple(sub_data[x] for x in sub_data) for sub_data in data]
         else:
             field = data[0]
+            if not isinstance(field, tuple):
+                field = tuple(field)
             values = data[1]
 
         if mode == 1:
@@ -115,7 +117,7 @@ class Database:
             sql = sql.format(('%s,' * len(field))[:-1])
             return sql, values
 
-    def insert(self, data, dbname=None, tbname=None, mode=None):
+    def insert(self, data, dbname=None, tbname=None, mode=None, size=10000):
         """
 
         2019-08-05 全部改用insertmany方法，速度提升约五倍
@@ -147,8 +149,10 @@ class Database:
 
         # type list with dict or tuple
         result = self.build(dbname, tbname, data, mode)
-        self.cur.executemany(result[0], result[1])
-        self.con.commit()
+        columns, values = result
+        for i in range(len(values) // size + 1):
+            self.cur.executemany(columns, values[i*size: (i+1)* size])
+            self.con.commit()
 
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
