@@ -3,9 +3,9 @@ import random
 import json
 
 try:
-    import log
+    import logger
 except:
-    from . import log
+    from . import logger
 try:
     import useragents
 except ModuleNotFoundError:
@@ -25,6 +25,7 @@ import http.client
 import urllib.error
 import urllib.parse
 
+log = logger.Log()
 
 class Crawl:
     """
@@ -39,6 +40,8 @@ class Crawl:
     :param proxyPools(list):    代理池，如果isProxy=True，这里需传入代理ips，list形式
     :param crawlConfig(dict):   包括maxtime、encoding和timeout三个参数的字典类型数据，可以单独传进来，也可以在crawlConfig传入，以后者为最新参数更新标准（除开''和None），如：{'maxtime':5}
     :param urlConfig(dict):     请求头信息，如：{'User_Agent':'xxxxxxxxxxx','Referer':'xxxxxxxxxx'}
+    :param isBinary:            是否返回字节流(可用于图片、pdf等文件下载存储)
+    :param useSSL:              True表示忽略ssl证书
     :param **kwargs(key-value): 附加请求头信息，必须大写开头
 
     examples:
@@ -58,7 +61,21 @@ class Crawl:
             or
             html = crawl.crawl('https://www.baidu.com',}, urlConfig={'Host': 'baidu.com', 'Cookie': 'xxxxxx'})
     """
-    def __init__(self, url, timeout=5, encoding='utf8', maxtime=5, data=None, dateType='str', isProxy=False, proxyPools=None, crawlConfig=None, urlConfig=None, isBinary=False, useSSL=False, **kwargs):
+
+    def __init__(self,
+                 url: str,
+                 timeout: int = 5,
+                 encoding: str = 'utf8',
+                 maxtime: int = 5,
+                 data: str or dict = None,
+                 dateType: str = 'str',
+                 isProxy: bool = False,
+                 proxyPools: list = None,
+                 crawlConfig: dict = None,
+                 urlConfig: dict = None,
+                 isBinary: bool = False,
+                 useSSL: bool = False,
+                 **kwargs):
         self.url = url
         self.timeout = timeout
         self.maxtime = maxtime
@@ -86,12 +103,11 @@ class Crawl:
                 print('Can not import ssl, check if successfully install python, Error: --->>>  ', str(e))
         self.run()
 
-
     def get_proxy(self):
-        '''
+        """
         获取代理，返回字典类型，每一次请求更换一次代理
         :return(dict):  形如{'http': '11.11.11.11:11'} 或者 {'https': '11.11.11.11:11'}
-        '''
+        """
         if self.proxyPools and self.proxyPools[0] != '':
             self.isProxy = True
             self.proxyData = {self.protocol: 'http://' + random.choice(self.proxyPools)}
@@ -100,11 +116,11 @@ class Crawl:
         return self.proxyData
 
     def parse_config(self):
-        '''
+        """
         配置处理函数，处理传进来的各种参数，以xxxConfig参数为最终形式，但不包括None和''参数
         其中：形如User-Agent等包含“-”字符的参数名，“-”需改为“_”
         :return(None):
-        '''
+        """
         urlConfig_ = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/55.0'}
 
         crawlConfig_ = {'timeout': self.timeout,
@@ -135,14 +151,13 @@ class Crawl:
         except:
             pass
 
-
     def run(self):
-        '''
+        """
         核心请求函数
         :return(str or None):   html，请求的html源码
-        '''
+        """
         index = 0
-        while index <= self.crawlConfig['maxtime']:
+        while index < self.crawlConfig['maxtime']:
             try:
                 try:
                     if self.isProxy or self.proxyPools:
@@ -160,7 +175,7 @@ class Crawl:
                             data = urllib.parse.urlencode(self.data)
                         data = data.encode('utf8')
                         req = urllib.request.Request(self.url, headers=self.urlConfig, data=data)
-                    res = opener.open(req)
+                    res = opener.open(req, timeout=self.timeout)
                     if res.status != 200:
                         raise Exception('status code is not 200 ! ')
                     try:
@@ -179,7 +194,7 @@ class Crawl:
                     log.error('BadStatusLine Error, URL:%s' % self.url)
 
                 except urllib.error.URLError as e:
-                    index += 0.2
+                    index += 1
                     log.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
 
                 except Exception as e:
@@ -190,7 +205,6 @@ class Crawl:
                 log.critical('...' + str(e))
         log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
         self.html = None
-
 
 
 crawl = Crawl

@@ -10,6 +10,7 @@ except:
     pass
 import datetime
 import os, sys
+import elasticsearch
 
 
 class Database:
@@ -169,3 +170,25 @@ class Database:
 
     def close(self):
         self.con.close()
+
+
+class ES:
+    def __init__(self,
+                 host:str='localhost',
+                 port: int=9200):
+        self.client = elasticsearch.Elasticsearch(hosts=[{"host": host, "port": port}])
+
+    def search(self,
+               index:str='bank',
+               body:dict={"size": "1000"}):
+
+
+        response = self.client.search(index=index, body=body)
+        items = response['hits']['hits']
+        return items
+
+    def insert(self,
+               index:str,
+               data:list):
+        data = [{"_index": index, "_type": "_doc", "_source": i} for i in data]
+        elasticsearch.helpers.bulk(self.client, data)

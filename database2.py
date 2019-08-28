@@ -1,7 +1,14 @@
 import pymongo
 import py2neo
+import elasticsearch
 
 
+
+
+
+
+
+'''
 con_mongo = pymongo.MongoClient()
 con = pymongo.MongoClient(host='', port=0, username='x', password='x', authSource='tmp')
 db = con['xxx']
@@ -23,3 +30,4 @@ match (e:Company{name:'%(node1)s'}), (ee:Company{name:'%(node2)s'})
 merge (e) - [r:%(relation)s] -> (ee)
 return e
 """ )
+'''
