@@ -1,7 +1,11 @@
 import pyspark
+import py2neo
+import pymongo
+import elasticsearch as es
+import elasticsearch_dsl as esl
 
 
-class SparkSQL:
+class SparkCon:
     '''
     examples:
 
@@ -21,5 +25,5 @@ class SparkSQL:
                                               table="%(dbname)s.%(tbname)s" % self.dbConfig,
                                               properties={"user": self.dbConfig['user'], "password": self.dbConfig['password']})
         self.spark_con.createOrReplaceTempView(self.dbConfig['tbname'])
-        
+
 

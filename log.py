@@ -1,8 +1,7 @@
 import logging
 from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
 import os
-import sys
-import platform
+
 
 """
 NOTSET   0
@@ -19,7 +18,7 @@ examples:
 """
 path = os.path.dirname(os.path.abspath(__file__)) + '/'
 if path.find('pack') >= 0:
-  path = os.getcwd() + '/'
+    path = os.getcwd() + '/'
 
 infoFilter = logging.Filter()
 debugFilter = logging.Filter()
@@ -39,7 +38,6 @@ infoOperation = RotatingFileHandler(path + 'z_info.log', maxBytes=1 * 1024 * 102
 infoOperation.addFilter(infoFilter)
 infoFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 infoOperation.setFormatter(infoFormat)
-
 
 debugOperation = RotatingFileHandler(path + 'z_debug.log', maxBytes=1 * 1024 * 1024, backupCount=1)
 debugOperation.addFilter(debugFilter)
@@ -61,7 +59,6 @@ criticalOperation.addFilter(criticalFilter)
 criticalFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 criticalOperation.setFormatter(criticalFormat)
 
-
 console = logging.StreamHandler()
 console.setLevel(50)
 consoleFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -77,28 +74,36 @@ log.addHandler(criticalOperation)
 log.addHandler(console)
 
 
-def conbine(msg, e):
-  content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + str(msg)
-  return content
+def conbine(msg, e: Exception):
+    content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + str(msg)
+    return content
 
-def debug(msg, e=None, *args, **kwargs):
-  if e:
-    msg = conbine(msg, e)
-  return log.debug(msg, *args, **kwargs)
-def info(msg, e=None, *args, **kwargs):
-  if e:
-    msg = conbine(msg, e)
-  return log.info(msg, *args, **kwargs)
-def warning(msg, e=None, *args, **kwargs):
-  if e:
-    msg = conbine(msg, e)
-  return log.warning(msg, *args, **kwargs)
-def error(msg, e=None, *args, **kwargs):
-  if e:
-    msg = conbine(msg, e)
-  return log.error(msg, *args, **kwargs)
-def critical(msg, e=None, *args, **kwargs):
-  if e:
-    msg = conbine(msg, e)
-  return log.critical(msg, *args, **kwargs)
 
+def debug(msg, e: Exception = None, *args, **kwargs):
+    if e:
+        msg = conbine(msg, e)
+    return log.debug(msg, *args, **kwargs)
+
+
+def info(msg, e: Exception = None, *args, **kwargs):
+    if e:
+        msg = conbine(msg, e)
+    return log.info(msg, *args, **kwargs)
+
+
+def warning(msg, e: Exception = None, *args, **kwargs):
+    if e:
+        msg = conbine(msg, e)
+    return log.warning(msg, *args, **kwargs)
+
+
+def error(msg, e: Exception = None, *args, **kwargs):
+    if e:
+        msg = conbine(msg, e)
+    return log.error(msg, *args, **kwargs)
+
+
+def critical(msg, e: Exception = None, *args, **kwargs):
+    if e:
+        msg = conbine(msg, e)
+    return log.critical(msg, *args, **kwargs)

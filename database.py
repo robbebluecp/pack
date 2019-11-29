@@ -10,7 +10,6 @@ except:
     pass
 import datetime
 import os, sys
-import elasticsearch
 
 
 class Database:
@@ -88,9 +87,8 @@ class Database:
            data: [(field1, field2, field3, ....), [(data1, data2, data3,...), (data1, data2, data3,...), ......]]
         """
         if isinstance(data, dict):
-            field = tuple(data.keys())
-            values = [tuple(data[x] for x in field)]
-        elif isinstance(data, list) and isinstance(data[0], dict):
+            assert 1 == 0,'不允许是字典！！！'
+        if isinstance(data, list) and isinstance(data[0], dict):
             field = tuple(data[0].keys())
             values = [tuple(sub_data[x] for x in sub_data) for sub_data in data]
         else:
@@ -101,12 +99,17 @@ class Database:
 
         if mode == 1:
 
-            sql = """insert into %s.%s %s values ({})""" % (
+
+            field_char = str(field).replace("'", '`')
+            if len(field) == 1:
+                field_char = field_char.replace(',', '')
+            sql = """insert into `%s`.`%s` %s values ({})""" % (
                 dbname,
                 tbname,
-                str(field).replace("'", '`')
+                field_char
             )
             sql = sql.format(('%s,' * len(field))[:-1])
+
             return sql, values
 
         elif mode == 2:
@@ -170,25 +173,3 @@ class Database:
 
     def close(self):
         self.con.close()
-
-
-class ES:
-    def __init__(self,
-                 host:str='localhost',
-                 port: int=9200):
-        self.client = elasticsearch.Elasticsearch(hosts=[{"host": host, "port": port}])
-
-    def search(self,
-               index:str='bank',
-               body:dict={"size": "1000"}):
-
-
-        response = self.client.search(index=index, body=body)
-        items = response['hits']['hits']
-        return items
-
-    def insert(self,
-               index:str,
-               data:list):
-        data = [{"_index": index, "_type": "_doc", "_source": i} for i in data]
-        elasticsearch.helpers.bulk(self.client, data)

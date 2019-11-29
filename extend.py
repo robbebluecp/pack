@@ -1,12 +1,7 @@
-import ctypes
 import time
 import datetime
-import numpy as np
 from hashlib import md5
-try:
-    import database
-except:
-    from . import database
+
 
 
 def get_md5(char):
@@ -31,9 +26,11 @@ def time_stamp(time_int: int or str):
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
+
 # 当前时间转固定格式
 def time_to_char():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
 
 # 定时器
 def control(star_time: int or float,
@@ -50,6 +47,7 @@ def control(star_time: int or float,
         return 1
     else:
         return 0
+
 
 
 # pycharm专用，颜色字体打印

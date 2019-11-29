@@ -3,9 +3,9 @@ import random
 import json
 
 try:
-    import logger
+    import log
 except:
-    from . import logger
+    from . import log
 try:
     import useragents
 except ModuleNotFoundError:
@@ -25,7 +25,6 @@ import http.client
 import urllib.error
 import urllib.parse
 
-log = logger.Log()
 
 class Crawl:
     """
@@ -194,7 +193,7 @@ class Crawl:
                     log.error('BadStatusLine Error, URL:%s' % self.url)
 
                 except urllib.error.URLError as e:
-                    index += 1
+                    index += 0.2
                     log.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
 
                 except Exception as e:
