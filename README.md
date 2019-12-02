@@ -38,5 +38,5 @@ nlp常用模块，当前制作了"词向量"类和"聚类"两个类，后续会�
 - **(1)pip3 install git+https://github.com/yfyvan/pack.git (Recomanded)**  
 因为这是最新的，一般我会先push到github而不是到pypi
 
-- **(2)pip3 install lpack**
+- **(2)pip3 install ldhpack**
 
