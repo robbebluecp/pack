@@ -8,8 +8,22 @@ try:
 except:
     print('module "pymssql" is not avalable for your recent system circustance')
     pass
-import datetime
-import os, sys
+
+
+def check_sock(func):
+    """
+
+    重置连接装饰器, 连接池的底层实现逻辑
+    :param func:
+    :return:
+    """
+
+    def wrapper(self, *args, **kwargs):
+        if not self.ping():
+            self.reconnect()
+        return func(self, *args, **kwargs)
+
+    return wrapper
 
 
 class Database:
@@ -52,6 +66,7 @@ class Database:
             self.dbname = dbname
             self.tbname = tbname
             self.charset = charset
+        self.dbConfig = {'mode': self.mode, 'host': self.host, 'port': self.port, 'user': user, 'password': password, 'dbname': dbname, 'tbname': tbname}
         self.con = self.get_con(host=self.host, port=self.port, user=self.user, password=self.password, mode=self.mode,
                                 dbname=self.dbname, tbname=self.tbname, charset=self.charset)
         self.cur = self.con.cursor()
@@ -87,7 +102,7 @@ class Database:
            data: [(field1, field2, field3, ....), [(data1, data2, data3,...), (data1, data2, data3,...), ......]]
         """
         if isinstance(data, dict):
-            assert 1 == 0,'不允许是字典！！！'
+            assert 1 == 0, '不允许是字典！！！'
         if isinstance(data, list) and isinstance(data[0], dict):
             field = tuple(data[0].keys())
             values = [tuple(sub_data[x] for x in sub_data) for sub_data in data]
@@ -98,7 +113,6 @@ class Database:
             values = data[1]
 
         if mode == 1:
-
 
             field_char = str(field).replace("'", '`')
             if len(field) == 1:
@@ -121,6 +135,7 @@ class Database:
             sql = sql.format(('%s,' * len(field))[:-1])
             return sql, values
 
+    @check_sock
     def insert(self, data, dbname=None, tbname=None, mode=None, size=10000):
         """
 
@@ -155,9 +170,10 @@ class Database:
         result = self.build(dbname, tbname, data, mode)
         columns, values = result
         for i in range(len(values) // size + 1):
-            self.cur.executemany(columns, values[i*size: (i+1)* size])
+            self.cur.executemany(columns, values[i * size: (i + 1) * size])
             self.con.commit()
 
+    @check_sock
     def execute(self, sql, *params):
         self.cur.execute(sql, *params)
         return self.cur
@@ -173,3 +189,10 @@ class Database:
 
     def close(self):
         self.con.close()
+
+    def ping(self):
+        return True if self.con._sock else False
+
+    def reconnect(self):
+        self.con = self.get_con(**self.dbConfig)
+        self.cur = self.con.cursor()
