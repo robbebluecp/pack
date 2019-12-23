@@ -67,7 +67,7 @@ class Crawl:
                  encoding: str = 'utf8',
                  maxtime: int = 5,
                  data: str or dict = None,
-                 dateType: str = 'str',
+                 dataType: str = 'str',
                  isProxy: bool = False,
                  proxyPools: list = None,
                  crawlConfig: dict = None,
@@ -80,7 +80,7 @@ class Crawl:
         self.maxtime = maxtime
         self.encoding = encoding
         self.data = data
-        self.dataType = dateType
+        self.dataType = dataType
         self.isProxy = isProxy
         self.proxyPools = proxyPools
         self.crawlConfig = crawlConfig
