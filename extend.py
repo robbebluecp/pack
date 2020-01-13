@@ -1,12 +1,21 @@
 import time
 import datetime
-from hashlib import md5
-
+from hashlib import md5, sha1
 
 
 def get_md5(char):
     char = str(char)
     m = md5()
+    m.update(char.encode('utf8'))
+    return m.hexdigest()
+
+
+def encrypt(char, method='md5'):
+    char = str(char)
+    if method == 'md5':
+        m = md5()
+    elif method == 'sha1':
+        m = sha1()
     m.update(char.encode('utf8'))
     return m.hexdigest()
 
@@ -47,7 +56,6 @@ def control(star_time: int or float,
         return 1
     else:
         return 0
-
 
 
 # pycharm专用，颜色字体打印

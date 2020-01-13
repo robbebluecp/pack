@@ -3,11 +3,11 @@ try:
 except:
     print('module "pymysql" is not avalable for your recent system circustance')
     pass
-try:
-    import pymssql
-except:
-    print('module "pymssql" is not avalable for your recent system circustance')
-    pass
+# try:
+#     import pymssql
+# except:
+#     print('module "pymssql" is not avalable for your recent system circustance')
+#     pass
 
 
 def check_sock(func):
@@ -87,11 +87,12 @@ class Database:
         if mode == 1:
             con = pymysql.connect(host='%s' % host, user='%s' % user, port=int(port),
                                   password='%s' % password, charset=charset, database=dbname)
-
-        elif mode == 2:
-            con = pymssql.connect(server='%s' % host, user='%s' % user, port='%s' % port,
-                                  password='%s' % password, database='%s' % dbname, charset=charset)
-            pymssql.set_max_connections(200000)
+        else:
+            assert 1 == 0, 'mode is must be 1 !'
+        # elif mode == 2:
+        #     con = pymssql.connect(server='%s' % host, user='%s' % user, port='%s' % port,
+        #                           password='%s' % password, database='%s' % dbname, charset=charset)
+        #     pymssql.set_max_connections(200000)
         return con
 
     def build(self, dbname, tbname, data, mode):
