@@ -20,29 +20,29 @@ path = os.path.dirname(os.path.abspath(__file__)) + '/'
 if path.find('pack') >= 0:
     path = os.getcwd() + '/'
 
-infoFilter = logging.Filter()
-debugFilter = logging.Filter()
+# infoFilter = logging.Filter()
+# debugFilter = logging.Filter()
 warningFilter = logging.Filter()
 errorFilter = logging.Filter()
 criticalFilter = logging.Filter()
 
 # 区分日志等级
-infoFilter.filter = lambda level: 20 <= level.levelno <= 20
-debugFilter.filter = lambda level: 10 <= level.levelno <= 10
+# infoFilter.filter = lambda level: 20 <= level.levelno <= 20
+# debugFilter.filter = lambda level: 10 <= level.levelno <= 10
 warningFilter.filter = lambda level: 30 <= level.levelno <= 30
 errorFilter.filter = lambda level: 40 <= level.levelno <= 40
 criticalFilter.filter = lambda level: 50 <= level.levelno <= 50
 
 # 日志分5个等级
-infoOperation = RotatingFileHandler(path + 'z_info.log', maxBytes=1 * 1024 * 1024, backupCount=1)
-infoOperation.addFilter(infoFilter)
-infoFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-infoOperation.setFormatter(infoFormat)
+# infoOperation = RotatingFileHandler(path + 'z_info.log', maxBytes=1 * 1024 * 1024, backupCount=1)
+# infoOperation.addFilter(infoFilter)
+# infoFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+# infoOperation.setFormatter(infoFormat)
 
-debugOperation = RotatingFileHandler(path + 'z_debug.log', maxBytes=1 * 1024 * 1024, backupCount=1)
-debugOperation.addFilter(debugFilter)
-debugFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-debugOperation.setFormatter(debugFormat)
+# debugOperation = RotatingFileHandler(path + 'z_debug.log', maxBytes=1 * 1024 * 1024, backupCount=1)
+# debugOperation.addFilter(debugFilter)
+# debugFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+# debugOperation.setFormatter(debugFormat)
 
 warningOperation = RotatingFileHandler(path + 'z_warning.log', maxBytes=1 * 1024 * 1024, backupCount=1)
 warningOperation.addFilter(warningFilter)
@@ -66,8 +66,8 @@ console.setFormatter(consoleFormat)
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-log.addHandler(infoOperation)
-log.addHandler(debugOperation)
+# log.addHandler(infoOperation)
+# log.addHandler(debugOperation)
 log.addHandler(warningOperation)
 log.addHandler(errorOperation)
 log.addHandler(criticalOperation)
