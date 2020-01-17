@@ -3,9 +3,9 @@ import random
 import json
 
 try:
-    import log
+    import log_bak
 except:
-    from . import log
+    from . import log_bak
 try:
     import useragents
 except ModuleNotFoundError:
@@ -183,26 +183,26 @@ class Crawl:
                         else:
                             self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
                     except http.client.IncompleteRead as e:
-                        log.error('IncompleteRead Error, Url: %s' % self.url)
+                        log_bak.error('IncompleteRead Error, Url: %s' % self.url)
                         self.html = e.partial.decode(self.crawlConfig['encoding'], errors='ignore')
                     opener.close()
                     return self.html
 
                 except http.client.BadStatusLine as e:
                     index += 1
-                    log.error('BadStatusLine Error, URL:%s' % self.url)
+                    log_bak.error('BadStatusLine Error, URL:%s' % self.url)
 
                 except urllib.error.URLError as e:
                     index += 0.2
-                    log.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
+                    log_bak.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
 
                 except Exception as e:
                     index += 1
-                    log.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
+                    log_bak.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
             except Exception as e:
                 index += 1
-                log.critical('...' + str(e))
-        log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
+                log_bak.critical('...' + str(e))
+        log_bak.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
         self.html = None
 
 

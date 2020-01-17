@@ -1,109 +1,117 @@
 import logging
-from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
 import os
+from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
+import sys
 
 
-"""
-NOTSET   0
-DEBUG    10
-INFO    20
-WARNING   30
-ERROR    40
-CRITICAL  50
+class Log:
+    def __init__(self, log_path=None, name=None):
+        # 0 - 50
+        self.log_mapping = {'notset': logging.NOTSET,
+                            'debug': logging.DEBUG,
+                            'info': logging.INFO,
+                            'warning': logging.WARNING,
+                            'error': logging.ERROR,
+                            'critical': logging.CRITICAL}
 
-examples:
-    (1) log.warning('This is A warning message')
+        self.log_config = {'notset': {'maxBytes': 1, 'backupCount': 1},
+                           'debug': {'maxBytes': 1, 'backupCount': 1},
+                           'info': {'maxBytes': 1, 'backupCount': 1},
+                           'warning': {'maxBytes': 1, 'backupCount': 2},
+                           'error': {'maxBytes': 5, 'backupCount': 5},
+                           'critical': {'maxBytes': 5, 'backupCount': 5}}
 
-    (1) log.critical('This is A critical message')
-"""
-path = os.path.dirname(os.path.abspath(__file__)) + '/'
-if path.find('pack') >= 0:
-    path = os.getcwd() + '/'
+        self.init_log_path(log_path)
+        self.public_name = 'z' if not name else name
 
-# infoFilter = logging.Filter()
-# debugFilter = logging.Filter()
-warningFilter = logging.Filter()
-errorFilter = logging.Filter()
-criticalFilter = logging.Filter()
+        # initial log container
+        self.logs = {}
 
-# 区分日志等级
-# infoFilter.filter = lambda level: 20 <= level.levelno <= 20
-# debugFilter.filter = lambda level: 10 <= level.levelno <= 10
-warningFilter.filter = lambda level: 30 <= level.levelno <= 30
-errorFilter.filter = lambda level: 40 <= level.levelno <= 40
-criticalFilter.filter = lambda level: 50 <= level.levelno <= 50
+    def init_log_path(self, log_path=None):
+        def helper():
+            root = os.path.dirname(os.path.abspath(__file__))
+            if root.find('pack') >= 0:
+                root = os.getcwd()
+            return root
 
-# 日志分5个等级
-# infoOperation = RotatingFileHandler(path + 'z_info.log', maxBytes=1 * 1024 * 1024, backupCount=1)
-# infoOperation.addFilter(infoFilter)
-# infoFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-# infoOperation.setFormatter(infoFormat)
+        if not log_path:
+            self.log_root = helper()
+        elif log_path in {'logs', 'log'}:
+            self.log_root = helper() + '/' + log_path
+        else:
+            if log_path.split('/')[-1].find('.') >= 0:
+                self.log_root = os.path.dirname(log_path)
+            else:
+                self.log_root = log_path
+            if self.log_root == '//':
+                self.log_root = '/'
+            if not self.log_root.endswith('/'):
+                self.log_root += '/'
+        if not os.path.exists(self.log_root):
+            os.makedirs(self.log_root)
+        print('Log root --->>> ', self.log_root)
 
-# debugOperation = RotatingFileHandler(path + 'z_debug.log', maxBytes=1 * 1024 * 1024, backupCount=1)
-# debugOperation.addFilter(debugFilter)
-# debugFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-# debugOperation.setFormatter(debugFormat)
+    def init_config(self, name=None):
+        base_format = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        if name not in self.logs:
+            # 创建logger
+            logger = logging.getLogger(str(self.log_mapping[name]))
+            logger.setLevel(self.log_mapping[name])
+            # 创建hander用于写日日志文件
+            log_path = self.log_root + self.public_name + '_' + name + '.log'
+            base_handler = RotatingFileHandler(log_path, maxBytes=1 * 1024 * 1024, backupCount=1)
+            # 定义日志的输出格式
+            base_handler.setFormatter(base_format)
+            base_handler.setLevel(self.log_mapping[name])
+            # 给logger添加hander
+            logger.addHandler(base_handler)
+            # critical level add console hander
+            if name == 'critical':
+                console_handler = logging.StreamHandler()
+                console_handler.setLevel(self.log_mapping[name])
+                console_format = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+                console_handler.setFormatter(console_format)
+                logger.addHandler(console_handler)
+            self.logs.update({name: logger})
 
-warningOperation = RotatingFileHandler(path + 'z_warning.log', maxBytes=1 * 1024 * 1024, backupCount=1)
-warningOperation.addFilter(warningFilter)
-warningFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-warningOperation.setFormatter(warningFormat)
+    def update_config(self, name: str):
+        name = name.lower()
+        assert name in {'notset', 'debug', 'info', 'warning', 'error', 'critical'}, '日志等级不正确'
+        self.init_config(name)
 
-errorOperation = RotatingFileHandler(path + 'z_error.log', maxBytes=10 * 1024 * 1024, backupCount=5)
-errorOperation.addFilter(errorFilter)
-errorFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-errorOperation.setFormatter(errorFormat)
+    def warning(self, msg):
+        func_name = sys._getframe().f_code.co_name
+        self.update_config(func_name)
+        return self.logs[func_name].warning(msg)
 
-criticalOperation = RotatingFileHandler(path + 'z_critical.log', maxBytes=10 * 1024 * 1024, backupCount=2)
-criticalOperation.addFilter(criticalFilter)
-criticalFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-criticalOperation.setFormatter(criticalFormat)
+    def error(self, msg):
+        func_name = sys._getframe().f_code.co_name
+        self.update_config(func_name)
+        return self.logs[func_name].error(msg)
 
-console = logging.StreamHandler()
-console.setLevel(50)
-consoleFormat = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-console.setFormatter(consoleFormat)
+    def critical(self, msg):
+        func_name = sys._getframe().f_code.co_name
+        self.update_config(func_name)
+        return self.logs[func_name].critical(msg)
 
-log = logging.getLogger()
-log.setLevel(logging.DEBUG)
-# log.addHandler(infoOperation)
-# log.addHandler(debugOperation)
-log.addHandler(warningOperation)
-log.addHandler(errorOperation)
-log.addHandler(criticalOperation)
-log.addHandler(console)
+    def debug(self, msg):
+        func_name = sys._getframe().f_code.co_name
+        self.update_config(func_name)
+        return self.logs[func_name].debug(msg)
 
+    def notset(self, msg):
+        func_name = sys._getframe().f_code.co_name
+        self.update_config(func_name)
+        return self.logs[func_name].notset(msg)
 
-def conbine(msg, e: Exception):
-    content = 'File:' + str(e.__traceback__.tb_frame.f_code.co_filename) + '------Line:' + str(e.__traceback__.tb_lineno) + '------Error:' + str(e) + '------Tips:' + str(msg)
-    return content
+    def info(self, msg):
+        func_name = sys._getframe().f_code.co_name
+        self.update_config(func_name)
+        return self.logs[func_name].info(msg)
 
-
-def debug(msg, e: Exception = None, *args, **kwargs):
-    if e:
-        msg = conbine(msg, e)
-    return log.debug(msg, *args, **kwargs)
-
-
-def info(msg, e: Exception = None, *args, **kwargs):
-    if e:
-        msg = conbine(msg, e)
-    return log.info(msg, *args, **kwargs)
-
-
-def warning(msg, e: Exception = None, *args, **kwargs):
-    if e:
-        msg = conbine(msg, e)
-    return log.warning(msg, *args, **kwargs)
-
-
-def error(msg, e: Exception = None, *args, **kwargs):
-    if e:
-        msg = conbine(msg, e)
-    return log.error(msg, *args, **kwargs)
-
-
-def critical(msg, e: Exception = None, *args, **kwargs):
-    if e:
-        msg = conbine(msg, e)
-    return log.critical(msg, *args, **kwargs)
+if __name__ == '__main__':
+    log = Log(log_path='logs')
+    print(log.logs)
+    log.warning('111')
+    log.warning('222')
+    log.critical('!!!!')
