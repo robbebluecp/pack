@@ -1,45 +1,100 @@
-import numpy as np
-import jieba
-import jieba.analyse
-from collections import Counter
-
-def word_2_vec(words1, words2):
-    # 词向量
-    words1_info = jieba.analyse.extract_tags(words1, withWeight=True)
-    words2_info = jieba.analyse.extract_tags(words2, withWeight=True)
-    # 转成counter不需要考虑0的情况
-    words1_dict = Counter({i[0]: i[1] for i in words1_info})
-    words2_dict = Counter({i[0]: i[1] for i in words2_info})
-    bags = set(words1_dict.keys()).union(set(words2_dict.keys()))
-    # 转成list对debug比较方便吗，防止循环集合每次结果不一致
-    bags = sorted(list(bags))
-    vec_words1 = [words1_dict[i] for i in bags]
-    vec_words2 = [words2_dict[i] for i in bags]
-    # 转numpy
-    vec_words1 = np.asarray(vec_words1, dtype=np.float)
-    vec_words2 = np.asarray(vec_words2, dtype=np.float)
-    return vec_words1, vec_words2
+import time
+import datetime
+from hashlib import md5, sha1
 
 
-def cosine_similarity(v1, v2):
-    # 余弦相似度
-    v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
-    up = np.dot(v1, v2)
-    down = np.linalg.norm(v1) * np.linalg.norm(v2)
-    return up / down
+def get_md5(char):
+    char = str(char)
+    m = md5()
+    m.update(char.encode('utf8'))
+    return m.hexdigest()
 
 
-def euclid_distince(v1, v2):
-    # 欧氏距离
-    v1 /= np.sum(v1)
-    v2 /= np.sum(v2)
-    v1, v2 = np.asarray(v1, dtype=np.float), np.asarray(v2, dtype=np.float)
-    return np.linalg.norm(v1 - v2)
-
-def softmax(x_input):
-    x_input = np.asarray(x_input, dtype=np.float) / max(x_input)
-    return np.exp(x_input) / np.sum(np.exp(x_input))
+def encrypt(char, method='md5'):
+    char = str(char)
+    if method == 'md5':
+        m = md5()
+    elif method == 'sha1':
+        m = sha1()
+    m.update(char.encode('utf8'))
+    return m.hexdigest()
 
 
-def sigmoid(x_input):
-    return 1.0 / (1.0 + np.exp(-(np.asarray(x_input, dtype=np.float))))
+def time_stamp(time_int: int or str):
+    '''
+    时间戳转GTM+8（东八区）时间,
+    :param time_int(int):       十位数时间戳
+    :return(datatime):          时间
+
+    examples:
+            print(time_stamp(1547111111))
+    '''
+    if isinstance(time_int, str):
+        time_int = int(time_int[:10])
+    chTime = time.localtime(time_int)
+    output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
+    return output
+
+
+# 当前时间转固定格式
+def time_to_char():
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
+
+# 定时器
+def control(star_time: int or float,
+            cycle: int or float = 86400,
+            scope: int or float = 100):
+    """
+
+    :param star_time:       任务开始时间
+    :param cycle:           任务周期
+    :param scope:           开始时间波动范围
+    :return:
+    """
+    if scope + star_time * 3600 <= (int(time.time()) + 8 * 3600) % cycle <= scope * 2 + star_time * 3600:
+        return 1
+    else:
+        return 0
+
+
+# pycharm专用，颜色字体打印
+def cprint(*char, c=None):
+    '''
+    打印有颜色字体
+    :param char(str or *str):       需要print的字符，可print多组字符
+    :param c(list or str):          如果为str，则所有字体都是一个颜色；如果为list，长度需=字符组长度
+    :return:
+
+    examples:
+            cprint('aaa', 'bbb','ccc', c=['r', 'g', 'b'])
+    '''
+    dic = {'r': '91',
+           'g': '92',
+           'y': '93',
+           'b': '94',
+           'p': '95',
+           'q': '96',
+           'z': '107,'
+           }
+    if c is None:
+        print(*char)
+        return
+
+    if len(char) > len(c) and isinstance(c, list):
+        c = c[0]
+
+    try:
+        if type(c) == str and c in dic:
+            print(*(map(lambda x: '\033[' + dic[c] + 'm' + str(x) + '\033[0m', char)))
+            return
+        if type(c) == list:
+            if len(c) != len(char):
+                print(*(map(lambda x: '\033[' + dic['z'] + 'm' + str(x) + '\033[0m', char)))
+                return
+            else:
+                print(*(map(lambda x, y: '\033[' + dic[y] + 'm' + str(x) + '\033[0m', char, c)))
+                return
+    except Exception as e:
+        print(*char)
+        return
