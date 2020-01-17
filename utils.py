@@ -35,6 +35,11 @@ def time_stamp(time_int: int or str):
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
+def catch(func):
+    def wrapper(*args, **kwargs):
+        func()
+    return wrapper
+
 
 # 当前时间转固定格式
 def time_to_char():
