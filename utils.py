@@ -3,13 +3,6 @@ import datetime
 from hashlib import md5, sha1
 
 
-def get_md5(char):
-    char = str(char)
-    m = md5()
-    m.update(char.encode('utf8'))
-    return m.hexdigest()
-
-
 def encrypt(char, method='md5'):
     char = str(char)
     if method == 'md5':
@@ -20,9 +13,10 @@ def encrypt(char, method='md5'):
     return m.hexdigest()
 
 
-def time_stamp(time_int: int or str):
+def stamp_to_date(time_int: int or str):
     '''
     时间戳转GTM+8（东八区）时间,
+    :param time_int:
     :param time_int(int):       十位数时间戳
     :return(datatime):          时间
 
@@ -35,14 +29,9 @@ def time_stamp(time_int: int or str):
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
-def catch(func):
-    def wrapper(*args, **kwargs):
-        func()
-    return wrapper
-
 
 # 当前时间转固定格式
-def time_to_char():
+def date_to_char():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 

@@ -1,25 +1,8 @@
 import urllib.request
 import random
 import json
-
-try:
-    import log_bak
-except:
-    from . import log_bak
-try:
-    import useragents
-except ModuleNotFoundError:
-    try:
-        from . import useragent
-    except:
-        'Module useragent do not exists'
-try:
-    from parseconfig import Parse
-except ModuleNotFoundError:
-    try:
-        from .parseconfig import Parse
-    except:
-        'Module parseconfig do not exists'
+from . import log
+from . import useragent
 
 import http.client
 import urllib.error
@@ -74,6 +57,8 @@ class Crawl:
                  urlConfig: dict = None,
                  isBinary: bool = False,
                  useSSL: bool = False,
+                 shuffle: bool = False,
+                 log_fun: log.Log = None,
                  **kwargs):
         self.url = url
         self.timeout = timeout
@@ -86,12 +71,18 @@ class Crawl:
         self.crawlConfig = crawlConfig
         self.urlConfig = urlConfig
         self.isBinary = isBinary
+        self.shuffle = shuffle
 
         # 根据协议类型选择对应的代理类型
         self.protocol = url[:url.find(':')]
         self.kwargs = kwargs
 
         self.html = None
+
+        if not log_fun:
+            self.log = log.Log()
+        else:
+            self.log = log_fun
 
         self.parse_config()
         if useSSL:
@@ -144,11 +135,8 @@ class Crawl:
         # self.urlConfig = list(map(lambda x:(x, self.urlConfig[x]), self.urlConfig))
 
         # 是否随机切换请求头，慎用！！！
-        try:
-            if Parse.crawlConfig['shuffle']:
-                self.urlConfig['User-Agent'] = random.choice(useragents.userAgents)
-        except:
-            pass
+        if self.shuffle:
+            self.urlConfig['User-Agent'] = random.choice(useragents.userAgents)
 
     def run(self):
         """
@@ -183,26 +171,26 @@ class Crawl:
                         else:
                             self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
                     except http.client.IncompleteRead as e:
-                        log_bak.error('IncompleteRead Error, Url: %s' % self.url)
+                        self.log.error('IncompleteRead Error, Url: %s' % self.url)
                         self.html = e.partial.decode(self.crawlConfig['encoding'], errors='ignore')
                     opener.close()
                     return self.html
 
                 except http.client.BadStatusLine as e:
                     index += 1
-                    log_bak.error('BadStatusLine Error, URL:%s' % self.url)
+                    self.log.error('BadStatusLine Error, URL:%s' % self.url)
 
                 except urllib.error.URLError as e:
                     index += 0.2
-                    log_bak.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
+                    self.log.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
 
                 except Exception as e:
                     index += 1
-                    log_bak.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
+                    self.og.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
             except Exception as e:
                 index += 1
-                log_bak.critical('...' + str(e))
-        log_bak.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
+                self.log.critical('...' + str(e))
+        self.log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
         self.html = None
 
 

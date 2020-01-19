@@ -3,8 +3,16 @@ import os
 
 
 class ParseConfig(configparser.ConfigParser, configparser.NoSectionError):
-    def __init__(self):
+    def __init__(self, file_name: str):
+        """
+        parser = parseconfig.ParseConfig('config.cfg')
+        print(parser.get_value('name'))
+        print(parser.config)
+        """
         super(ParseConfig, self).__init__()
+        self.read(file_name)
+        self.config = {}
+        self.init()
 
     def optionxform(self, optionstr):
         return optionstr
@@ -42,25 +50,9 @@ class ParseConfig(configparser.ConfigParser, configparser.NoSectionError):
             if section != self.default_section:
                 raise configparser.NoSectionError(section)
 
+    def get_value(self, section=object(), raw=False, vars=None):
+        return self.items(section=section, raw=raw, vars=vars)
 
-def parse(section, fileName='config.cfg'):
-    # parser = ParseConfig()
-    # parser.read(fileName)
-    # return parser.items(section)
-    pass
-
-
-class Parse(dict):
-    crawlConfig = {}
-    crawlConfig['shuffle'] = False
-    # crawlConfig = parse('crawlConfig')
-    # proxyConfig = parse('proxyConfig')
-    # dstConfig = parse('dstCon')
-    # generateConfig = parse('generateConfig')
-    # baseInfo = parse('baseInfo')
-    # spyderConfig = parse('spyderConfig')
-    # urlConfig = parse('urlConfig')
-    # # dstCon = parse('dstCon')
-    # srcTable = parse('srcTable')
-    # srcCon = parse('srcCon')
-    pass
+    def init(self):
+        for key in self.sections():
+            self.config[key] = self.get_value(key)
