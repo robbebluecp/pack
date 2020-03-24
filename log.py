@@ -55,7 +55,7 @@ class Log:
 
         #  use current project path by default
         if not log_path:
-            self.log_root = helper()
+            log_path = self.log_root = helper()
 
         # if delivered by "./", use current project path + log_path
         if log_path.startswith('./'):
