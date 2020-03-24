@@ -58,7 +58,7 @@ class Crawl:
                  isBinary: bool = False,
                  useSSL: bool = False,
                  shuffle: bool = False,
-                 log_fun: log.Log = None,
+                 log_fun: log.Log = log.Log(),
                  **kwargs):
         self.url = url
         self.timeout = timeout
