@@ -186,7 +186,7 @@ class Crawl:
 
                 except Exception as e:
                     index += 1
-                    self.og.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
+                    self.log.error('Other Error, URL:%s, ERROR:%s' % (self.url, str(e)))
             except Exception as e:
                 index += 1
                 self.log.critical('...' + str(e))
