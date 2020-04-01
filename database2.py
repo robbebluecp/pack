@@ -128,14 +128,28 @@ class SparkCon:
 
 class MongoCon:
 
-    def __init__(self):
-        self.con_mongo = pymongo.MongoClient(host='', port=0, username='x', password='x', authSource='tmp')
+    def __init__(self, host='localhost', port=27017, user='admin', password='321', dbname='admin', colname='tmp',
+                 charset='utf8', dbConfig=None, use_uri=False, **kwargs):
+        self.dbname = dbname
+        self.colname = colname
+        if use_uri:
+            self.con_mongo = pymongo.MongoClient('mongodb://%(user)s:%(password)s@%(host)s:%(port)s/?authSource=%(dbname)s' % {'user': user,
+                                                                                                                               'password': password,
+                                                                                                                               'host': host,
+                                                                                                                               'port': port,
+                                                                                                                               'dbname': dbname})
+        else:
+            self.con_mongo = pymongo.MongoClient(host=host, port=port, username=user, password=password, authSource=dbname)
 
-    def z(self):
-        db = self.con_mongo['xxx']
-        col = db['xxx']
-        col.insert_many()
-        col.insert_one()
+
+    def db(self, dbname=None):
+        dbname = dbname or self.dbname or 'tmp'
+        return self.con_mongo[dbname]
+
+    def col(self, colname=None, dbname=None):
+        dbname = dbname or self.dbname or 'tmp'
+        colname = colname or self.colname
+        return self.db(dbname)[colname]
 
 
 class Neo4jCon:
