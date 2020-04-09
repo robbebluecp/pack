@@ -4,6 +4,7 @@ import pymongo
 import elasticsearch as es
 import elasticsearch_dsl as esl
 from elasticsearch import helpers
+import rejson
 import os
 import json
 import time
@@ -21,7 +22,8 @@ class ElasticCon:
         self.port = port
         self.user = user
         self.password = password
-        self.con_es = es.Elasticsearch(hosts=[{'host': host, 'port': port} for host in hosts], http_auth=(user, password), timeout=timeout)
+        self.es_con = es.Elasticsearch(hosts=[{'host': host, 'port': port} for host in hosts],
+                                       http_auth=(user, password), timeout=timeout)
 
     def insert(self, data, _index=None, _type='_doc'):
         """
@@ -44,7 +46,7 @@ class ElasticCon:
         """
         if _index:
             data = ElasticCon.data_wrapper(data, _index, _type)
-        helpers.bulk(self.con_es, data)
+        helpers.bulk(self.es_con, data)
 
     @staticmethod
     def data_wrapper(data: list, _index, _type='_doc', **kwargs):
@@ -97,10 +99,10 @@ class ElasticCon:
                 _index = re.search('from\s+([^\s]+)\s*?', query).group(1)
             query = self.sql2json(query)
         if not lazy:
-            items = self.con_es.search(index=_index, body=query)
+            items = self.es_con.search(index=_index, body=query)
             items = items['hits']['hits']
         else:
-            items = helpers.scan(self.con_es, index=_index, query=query)
+            items = helpers.scan(self.es_con, index=_index, query=query)
         return items
 
 
@@ -113,16 +115,20 @@ class SparkCon:
 
     '''
 
-    def __init__(self, dbConfig={'host': 'localhost', 'port': 3306, 'user': 'root', 'password': '321', 'dbname': 'main', 'tbname': 'sharesinfo', 'mode': 1}, **kwargs):
+    def __init__(self, dbConfig={'host': 'localhost', 'port': 3306, 'user': 'root', 'password': '321', 'dbname': 'main',
+                                 'tbname': 'sharesinfo', 'mode': 1}, **kwargs):
         self.dbConfig = dbConfig
         if kwargs:
-            self.dbConfig.update({x: kwargs[x] for x in ['host', 'port' 'user', 'password', 'mode', 'dbname', 'tbname'] if x != ''})
+            self.dbConfig.update(
+                {x: kwargs[x] for x in ['host', 'port' 'user', 'password', 'mode', 'dbname', 'tbname'] if x != ''})
         if int(self.dbConfig['mode']) == 1:
             self.dbConfig['driver'] = 'jdbc:mysql'
-        self.spark = pyspark.sql.SparkSession.builder.appName('app').config('spark.some.config.option', 'some-value').getOrCreate()
+        self.spark = pyspark.sql.SparkSession.builder.appName('app').config('spark.some.config.option',
+                                                                            'some-value').getOrCreate()
         self.spark_con = self.spark.read.jdbc(url="%(driver)s://%(host)s:%(port)s?useSSL=true" % self.dbConfig,
                                               table="%(dbname)s.%(tbname)s" % self.dbConfig,
-                                              properties={"user": self.dbConfig['user'], "password": self.dbConfig['password']})
+                                              properties={"user": self.dbConfig['user'],
+                                                          "password": self.dbConfig['password']})
         self.spark_con.createOrReplaceTempView(self.dbConfig['tbname'])
 
 
@@ -133,18 +139,19 @@ class MongoCon:
         self.dbname = dbname
         self.colname = colname
         if use_uri:
-            self.con_mongo = pymongo.MongoClient('mongodb://%(user)s:%(password)s@%(host)s:%(port)s/?authSource=%(dbname)s' % {'user': user,
-                                                                                                                               'password': password,
-                                                                                                                               'host': host,
-                                                                                                                               'port': port,
-                                                                                                                               'dbname': dbname})
+            self.mongo_con = pymongo.MongoClient(
+                'mongodb://%(user)s:%(password)s@%(host)s:%(port)s/?authSource=%(dbname)s' % {'user': user,
+                                                                                              'password': password,
+                                                                                              'host': host,
+                                                                                              'port': port,
+                                                                                              'dbname': dbname})
         else:
-            self.con_mongo = pymongo.MongoClient(host=host, port=port, username=user, password=password, authSource=dbname)
-
+            self.mongo_con = pymongo.MongoClient(host=host, port=port, username=user, password=password,
+                                                 authSource=dbname)
 
     def db(self, dbname=None):
         dbname = dbname or self.dbname or 'tmp'
-        return self.con_mongo[dbname]
+        return self.mongo_con[dbname]
 
     def col(self, colname=None, dbname=None):
         dbname = dbname or self.dbname or 'tmp'
@@ -155,18 +162,37 @@ class MongoCon:
 class Neo4jCon:
 
     def __init__(self):
-        self.con_neo4j = py2neo.Graph(host='localhost', auth=('neo4j', '321'))
+        self.neo4j_con = py2neo.Graph(host='localhost', auth=('neo4j', '321'))
 
     def z(self):
-        self.con_neo4j.run("""xxxxxx""")
+        self.neo4j_con.run("""xxxxxx""")
 
-        self.con_neo4j.run("""merge (e: Company{name:'%(name)s'})
+        self.neo4j_con.run("""merge (e: Company{name:'%(name)s'})
         on create
         set e.name='%(name)s'
         """)
 
-        self.con_neo4j.run("""
+        self.neo4j_con.run("""
         match (e:Company{name:'%(node1)s'}), (ee:Company{name:'%(node2)s'})
         merge (e) - [r:%(relation)s] -> (ee)
         return e
         """)
+
+
+class RedisCon(rejson.Client):
+    def __init__(self, host='localhost', port=6379, password='321', db=0, *args, **kwargs):
+        self.params = dict({'host': host, 'port': port, 'password': password, 'db': db, 'decode_responses': True},
+                           **kwargs)
+        super(RedisCon, self).__init__(**self.params)
+
+    def change_db(self, db=0):
+        self.params['db'] = db
+        self.execute_command("""select %s""" % db)
+        self.params['db'] = int(db)
+        print("""db has been changed to %s""" % self.params['db'])
+
+    def __repr__(self):
+        return "%s<%s>" % (
+            type(self).__name__, self.params
+        )
+

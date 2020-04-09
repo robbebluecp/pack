@@ -1,6 +1,59 @@
 import cv2
 import numpy as np
 import copy
+from PIL import Image
+import io
+import base64
+
+
+class ImageTools:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def image_bytes_to_pillow(image_input, input_type='binary'):
+        if input_type == 'base64':
+            bytes_data = base64.decodebytes(image_input)
+        else:
+            bytes_data = image_input
+        buffer = io.BytesIO(bytes_data)
+        image = Image.open(buffer)
+        return image
+
+    @staticmethod
+    def image_pillow_to_bytes(image_input, output_type='binary'):
+        buffer = io.BytesIO()
+        image_input.save(buffer, format='JPEG')
+        image_data = buffer.getvalue()
+        if output_type == 'binary':
+            pass
+        else:
+            image_data = base64.encodebytes(image_data)
+        return image_data
+
+    @staticmethod
+    def image_binary_to_base64(image_input):
+        if isinstance(image_input, bytes):
+            return base64.encodebytes(image_input)
+        elif repr(image_input)[:4] == '<PIL':
+            buffer = io.BytesIO()
+            image_input.save(buffer, format='JPEG')
+            byte_data = buffer.getvalue()
+            image_data = base64.encodebytes(byte_data)
+            return image_data
+
+    @staticmethod
+    def image_base64_to_binary(image_input):
+        if isinstance(image_input, bytes):
+            return base64.decodebytes(image_input)
+        elif repr(image_input)[:4] == '<PIL':
+            buffer = io.BytesIO()
+            image_input.save(buffer, format='JPEG')
+            byte_data = buffer.getvalue()
+            image_data = base64.encodebytes(byte_data)
+            return image_data
+
 
 '''
 数据增强模块

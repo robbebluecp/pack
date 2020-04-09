@@ -3,6 +3,9 @@ try:
 except:
     print('module "pymysql" is not avalable for your recent system circustance')
     pass
+import pymongo
+import rejson
+
 # try:
 #     import pymssql
 # except:
@@ -66,7 +69,8 @@ class Database:
             self.dbname = dbname
             self.tbname = tbname
             self.charset = charset
-        self.dbConfig = {'mode': self.mode, 'host': self.host, 'port': self.port, 'user': user, 'password': password, 'dbname': dbname, 'tbname': tbname}
+        self.dbConfig = {'mode': self.mode, 'host': self.host, 'port': self.port, 'user': user, 'password': password,
+                         'dbname': dbname, 'tbname': tbname}
         self.con = self.get_con(host=self.host, port=self.port, user=self.user, password=self.password, mode=self.mode,
                                 dbname=self.dbname, tbname=self.tbname, charset=self.charset)
         self.cur = self.con.cursor()
@@ -197,3 +201,51 @@ class Database:
     def reconnect(self):
         self.con = self.get_con(**self.dbConfig)
         self.cur = self.con.cursor()
+
+
+MysqlCon = Database
+
+
+class RedisCon(rejson.Client):
+    def __init__(self, host='localhost', port=6379, password='321', db=0, *args, **kwargs):
+        self.params = dict({'host': host, 'port': port, 'password': password, 'db': db, 'decode_responses': True},
+                           **kwargs)
+        super(RedisCon, self).__init__(**self.params)
+
+    def change_db(self, db=0):
+        self.params['db'] = db
+        self.execute_command("""select %s""" % db)
+        self.params['db'] = int(db)
+        print("""db has been changed to %s""" % self.params['db'])
+
+    def __repr__(self):
+        return "%s<%s>" % (
+            type(self).__name__, self.params
+        )
+
+
+class MongoCon:
+
+    def __init__(self, host='localhost', port=27017, user='admin', password='321', dbname='admin', colname='tmp',
+                 charset='utf8', dbConfig=None, use_uri=False, **kwargs):
+        self.dbname = dbname
+        self.colname = colname
+        if use_uri:
+            self.mongo_con = pymongo.MongoClient(
+                'mongodb://%(user)s:%(password)s@%(host)s:%(port)s/?authSource=%(dbname)s' % {'user': user,
+                                                                                              'password': password,
+                                                                                              'host': host,
+                                                                                              'port': port,
+                                                                                              'dbname': dbname})
+        else:
+            self.mongo_con = pymongo.MongoClient(host=host, port=port, username=user, password=password,
+                                                 authSource=dbname)
+
+    def db(self, dbname=None):
+        dbname = dbname or self.dbname or 'tmp'
+        return self.mongo_con[dbname]
+
+    def col(self, colname=None, dbname=None):
+        dbname = dbname or self.dbname or 'tmp'
+        colname = colname or self.colname
+        return self.db(dbname)[colname]
