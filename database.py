@@ -1,3 +1,13 @@
+"""=================================================
+
+@Project    ：tiktok_distribution
+@IDE        ：PyCharm
+@Author     ：Robbe
+@Date       ：2020/4/21 10:36
+@Desc       ：数据库模块
+
+=================================================="""
+
 try:
     import pymysql
 except:
@@ -5,12 +15,6 @@ except:
     pass
 import pymongo
 import rejson
-
-# try:
-#     import pymssql
-# except:
-#     print('module "pymssql" is not avalable for your recent system circustance')
-#     pass
 
 
 def check_sock(func):
@@ -45,19 +49,19 @@ class Database:
     """
 
     def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log',
-                 charset='utf8', dbConfig=None, **kwargs):
-        if dbConfig:
-            self.mode = int(dbConfig['mode']) if dbConfig.get('mode') else mode
-            self.host = dbConfig['host'] if dbConfig.get('host') else host
+                 charset='utf8', db_config=None, **kwargs):
+        if db_config:
+            self.mode = int(db_config['mode']) if db_config.get('mode') else mode
+            self.host = db_config['host'] if db_config.get('host') else host
             if self.mode == 2:
                 self.port = 1433
             else:
                 self.port = 3306
-            self.user = dbConfig['user'] if dbConfig.get('user') else user
-            self.password = dbConfig['password'] if dbConfig.get('password') else password
-            self.dbname = dbConfig['dbname'] if dbConfig.get('dbname') else dbname
-            self.tbname = dbConfig['tbname'] if dbConfig.get('tbname') else tbname
-            self.charset = dbConfig['charset'] if dbConfig.get('charset') else charset
+            self.user = db_config['user'] if db_config.get('user') else user
+            self.password = db_config['password'] if db_config.get('password') else password
+            self.dbname = db_config['dbname'] if db_config.get('dbname') else dbname
+            self.tbname = db_config['tbname'] if db_config.get('tbname') else tbname
+            self.charset = db_config['charset'] if db_config.get('charset') else charset
         else:
             self.mode = int(mode)
             self.host = host
@@ -69,7 +73,7 @@ class Database:
             self.dbname = dbname
             self.tbname = tbname
             self.charset = charset
-        self.dbConfig = {'mode': self.mode, 'host': self.host, 'port': self.port, 'user': user, 'password': password,
+        self.db_config = {'mode': self.mode, 'host': self.host, 'port': self.port, 'user': user, 'password': password if password else '',
                          'dbname': dbname, 'tbname': tbname}
         self.con = self.get_con(host=self.host, port=self.port, user=self.user, password=self.password, mode=self.mode,
                                 dbname=self.dbname, tbname=self.tbname, charset=self.charset)
@@ -93,6 +97,7 @@ class Database:
                                   password='%s' % password, charset=charset, database=dbname)
         else:
             assert 1 == 0, 'mode is must be 1 !'
+        # sqlserver
         # elif mode == 2:
         #     con = pymssql.connect(server='%s' % host, user='%s' % user, port='%s' % port,
         #                           password='%s' % password, database='%s' % dbname, charset=charset)
@@ -131,14 +136,15 @@ class Database:
 
             return sql, values
 
-        elif mode == 2:
-            sql = """insert into %s.dbo.%s %s values ({})""" % (
-                dbname,
-                tbname,
-                str(field).replace("'", '')
-            )
-            sql = sql.format(('%s,' * len(field))[:-1])
-            return sql, values
+        # sqlserver
+        # elif mode == 2:
+        #     sql = """insert into %s.dbo.%s %s values ({})""" % (
+        #         dbname,
+        #         tbname,
+        #         str(field).replace("'", '')
+        #     )
+        #     sql = sql.format(('%s,' * len(field))[:-1])
+        #     return sql, values
 
     @check_sock
     def insert(self, data, dbname=None, tbname=None, mode=None, size=10000):
@@ -199,11 +205,8 @@ class Database:
         return True if self.con._sock else False
 
     def reconnect(self):
-        self.con = self.get_con(**self.dbConfig)
+        self.con = self.get_con(**self.db_config)
         self.cur = self.con.cursor()
-
-
-MysqlCon = Database
 
 
 class RedisCon(rejson.Client):
@@ -226,26 +229,34 @@ class RedisCon(rejson.Client):
 
 class MongoCon:
 
-    def __init__(self, host='localhost', port=27017, user='admin', password='321', dbname='admin', colname='tmp',
-                 charset='utf8', dbConfig=None, use_uri=False, **kwargs):
-        self.dbname = dbname
+    def __init__(self, host='localhost', port=27017, user='admin', password='321', auth_db='admin', colname='tmp',
+                 charset='utf8', db_config=None, use_uri=False, uri=None, **kwargs):
+        self.auth_db = auth_db
         self.colname = colname
-        if use_uri:
+        if isinstance(port, str):
+            port = int(port)
+
+        if uri:
+            self.mongo_con = pymongo.MongoClient(uri)
+        elif use_uri and not uri:
             self.mongo_con = pymongo.MongoClient(
                 'mongodb://%(user)s:%(password)s@%(host)s:%(port)s/?authSource=%(dbname)s' % {'user': user,
                                                                                               'password': password,
                                                                                               'host': host,
                                                                                               'port': port,
-                                                                                              'dbname': dbname})
+                                                                                              'dbname': auth_db})
         else:
             self.mongo_con = pymongo.MongoClient(host=host, port=port, username=user, password=password,
-                                                 authSource=dbname)
+                                                 authSource=auth_db)
 
     def db(self, dbname=None):
-        dbname = dbname or self.dbname or 'tmp'
+        dbname = dbname or self.auth_db or 'tmp'
         return self.mongo_con[dbname]
 
     def col(self, colname=None, dbname=None):
-        dbname = dbname or self.dbname or 'tmp'
+        dbname = dbname or self.auth_db or 'tmp'
         colname = colname or self.colname
         return self.db(dbname)[colname]
+
+
+MysqlCon = Database
