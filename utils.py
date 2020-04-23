@@ -1,9 +1,31 @@
+import socket
 import time
 import datetime
 from hashlib import md5, sha1
 
 
+def get_local_ip():
+    """
+    获取本地内网ip
+    """
+    ip = None
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+    except:
+        pass
+    return ip
+
+
 def encrypt(char, method='md5'):
+    """
+    支持md5和sha1加密方式
+    :param char:
+    :param method:
+    :return:
+    """
     char = str(char)
     if method == 'md5':
         m = md5()
@@ -23,33 +45,27 @@ def stamp_to_date(time_int: int or str):
     examples:
             print(time_stamp(1547111111))
     '''
+    ll = len(str(time_int))
     if isinstance(time_int, str):
         time_int = int(time_int[:10])
+    if ll > 10:
+        time_int = int(time_int / 10 ** (ll - 10))
+
     chTime = time.localtime(time_int)
     output = time.strftime("%Y-%m-%d %H:%M:%S", chTime)
     return output
 
 
 # 当前时间转固定格式
-def date_to_char():
-    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-
-
-# 定时器
-def control(star_time: int or float,
-            cycle: int or float = 86400,
-            scope: int or float = 100):
+def date_to_char(type='s'):
     """
-
-    :param star_time:       任务开始时间
-    :param cycle:           任务周期
-    :param scope:           开始时间波动范围
+    当前时间转成年月日时分秒形式
     :return:
     """
-    if scope + star_time * 3600 <= (int(time.time()) + 8 * 3600) % cycle <= scope * 2 + star_time * 3600:
-        return 1
-    else:
-        return 0
+    if type == 's':
+        return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    elif type == 'm':
+        return datetime.datetime.now().strftime('%Y%m%d%H%M')
 
 
 # pycharm专用，颜色字体打印

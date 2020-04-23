@@ -1,13 +1,3 @@
-"""=================================================
-
-@Project    ：tiktok_distribution
-@IDE        ：PyCharm
-@Author     ：Robbe
-@Date       ：2020/4/21 10:36
-@Desc       ：数据库模块
-
-=================================================="""
-
 try:
     import pymysql
 except:
