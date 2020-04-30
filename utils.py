@@ -2,6 +2,9 @@ import socket
 import time
 import datetime
 from hashlib import md5, sha1
+import emoji
+from googletrans import Translator
+from typing import List, Dict
 
 
 def get_local_ip():
@@ -57,18 +60,55 @@ def stamp_to_date(time_int: int or str):
 
 
 # 当前时间转固定格式
-def date_to_char(type='s'):
+def date_to_char(type='s', ctime=None):
     """
     当前时间转成年月日时分秒形式
     :return:
     """
+    if not ctime:
+        ctime = datetime.datetime.now()
     if type == 's':
-        return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        return ctime.strftime('%Y%m%d%H%M%S')
     elif type == 'm':
-        return datetime.datetime.now().strftime('%Y%m%d%H%M')
+        return ctime.strftime('%Y%m%d%H%M')
 
 
-# pycharm专用，颜色字体打印
+def emoji_transfer(chars: str or List[str]) -> str or List[str]:
+    """
+    对字符的表情进行转换
+    :param char:
+    :return:
+    """
+    result = []
+    if isinstance(chars, list):
+        for char in chars:
+            result.append(emoji.demojize(char))
+        return result
+    else:
+        return emoji.demojize(chars)
+
+
+def translate_to_en(chars: str or List[str] or iter,
+                    translator: Translator = None,
+                    return_type: str = 'list') -> List[str]:
+    """
+    谷歌翻译
+    :param chars:
+    :param translator:
+    :param return_type:
+    :return:
+    """
+    if isinstance(chars, str):
+        chars = [chars]
+    if not translator:
+        translator = Translator(service_urls=['translate.google.cn'])
+    result = translator.translate(chars)
+    if return_type == 'list':
+        return list(map(lambda x: x.text, result))
+    else:
+        return result
+
+
 def cprint(*char, c=None):
     '''
     打印有颜色字体

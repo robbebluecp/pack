@@ -219,10 +219,11 @@ class RedisCon(rejson.Client):
 
 class MongoCon:
 
-    def __init__(self, host='localhost', port=27017, user='admin', password='321', auth_db='admin', colname='tmp',
+    def __init__(self, host='localhost', port=27017, user='admin', password='321', auth_db='admin', dbname='tmp', colname='tmp',
                  charset='utf8', db_config=None, use_uri=False, uri=None, **kwargs):
         self.auth_db = auth_db
         self.colname = colname
+        self.dbname = dbname
         if isinstance(port, str):
             port = int(port)
 
@@ -240,11 +241,11 @@ class MongoCon:
                                                  authSource=auth_db)
 
     def db(self, dbname=None):
-        dbname = dbname or self.auth_db or 'tmp'
+        dbname = dbname or self.dbname or 'tmp'
         return self.mongo_con[dbname]
 
     def col(self, colname=None, dbname=None):
-        dbname = dbname or self.auth_db or 'tmp'
+        dbname = dbname or self.dbname or 'tmp'
         colname = colname or self.colname
         return self.db(dbname)[colname]
 
