@@ -89,11 +89,13 @@ def emoji_transfer(chars: str or List[str]) -> str or List[str]:
 
 
 def translate_to_en(chars: str or List[str] or iter,
+                    dest: str = 'en',
                     translator: Translator = None,
                     return_type: str = 'list') -> List[str]:
     """
     谷歌翻译
     :param chars:
+    :param dest:        zh-cn
     :param translator:
     :param return_type:
     :return:
@@ -102,7 +104,7 @@ def translate_to_en(chars: str or List[str] or iter,
         chars = [chars]
     if not translator:
         translator = Translator(service_urls=['translate.google.cn'])
-    result = translator.translate(chars)
+    result = translator.translate(chars, dest=dest)
     if return_type == 'list':
         return list(map(lambda x: x.text, result))
     else:
