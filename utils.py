@@ -73,6 +73,22 @@ def date_to_char(type='s', ctime=None):
         return ctime.strftime('%Y%m%d%H%M')
 
 
+# 定时器
+def control(star_time: int or float = 0,
+            cycle: int or float = 86400,
+            scope: int or float = 100):
+    """
+    :param star_time:       任务开始时间
+    :param cycle:           任务周期
+    :param scope:           开始时间波动范围
+    :return:
+    """
+    if scope + star_time * 3600 <= (int(time.time()) + 8 * 3600) % cycle <= scope * 2 + star_time * 3600:
+        return 1
+    else:
+        return 0
+
+
 def emoji_transfer(chars: str or List[str]) -> str or List[str]:
     """
     对字符的表情进行转换
@@ -89,13 +105,12 @@ def emoji_transfer(chars: str or List[str]) -> str or List[str]:
 
 
 def translate_to_en(chars: str or List[str] or iter,
-                    dest: str = 'en',
                     translator: Translator = None,
-                    return_type: str = 'list') -> List[str]:
+                    return_type: str = 'list',
+                    dest='en') -> List[str]:
     """
     谷歌翻译
     :param chars:
-    :param dest:        zh-cn
     :param translator:
     :param return_type:
     :return:
