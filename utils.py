@@ -5,6 +5,9 @@ from hashlib import md5, sha1
 import emoji
 from googletrans import Translator
 from typing import List, Dict
+import urllib.parse
+from . import crawl
+import json
 
 
 def get_local_ip():
@@ -104,10 +107,11 @@ def emoji_transfer(chars: str or List[str]) -> str or List[str]:
         return emoji.demojize(chars)
 
 
-def translate_to_en(chars: str or List[str] or iter,
+def google_trans(chars: str or List[str] or iter,
                     translator: Translator = None,
                     return_type: str = 'list',
-                    dest='en') -> List[str]:
+                    dest='en',
+                    service_urls=['translate.google.cn']) -> List[str]:
     """
     谷歌翻译
     :param chars:
@@ -118,12 +122,49 @@ def translate_to_en(chars: str or List[str] or iter,
     if isinstance(chars, str):
         chars = [chars]
     if not translator:
-        translator = Translator(service_urls=['translate.google.cn'])
+        translator = Translator(service_urls=service_urls)
     result = translator.translate(chars, dest=dest)
     if return_type == 'list':
         return list(map(lambda x: x.text, result))
     else:
         return result
+
+def baidu_trans(app_id: str,
+                secret_key: str,
+                query: str,
+                from_lan: str = 'auto',
+                to_lan: str = 'en',
+                salt='robbe'
+                ):
+    """
+
+    :param app_id:              your baidu api app_id
+    :param secret_key:          your baidu api secret_key
+    :param query:               something need to translate
+    :param from_lan:            from 【xxx】 language
+    :param to_lan:              to 【xxx】 language
+    :param salt:                salt
+    :return:
+    """
+
+    sign = app_id + query + str(salt) + secret_key
+    sign = md5(sign.encode()).hexdigest()
+    nn = 0
+    while nn < 10:
+        try:
+            sub_url = '/api/trans/vip/translate' + '?appid=' + app_id + '&q=' + urllib.parse.quote(
+                query) + '&from=' + from_lan + '&to=' + to_lan + '&salt=' + str(
+                salt) + '&sign=' + sign
+
+            url = 'https://fanyi-api.baidu.com/api/trans/vip/translate' + sub_url
+            html = crawl.crawl(url).html
+            data = json.loads(html)
+            des_sentence = data['trans_result'][0]['dst']
+            return des_sentence
+        except Exception as e:
+            print(e)
+            nn += 1
+    return None
 
 
 def cprint(*char, c=None):

@@ -55,6 +55,7 @@ class Crawl:
                  proxyPools: list = None,
                  crawlConfig: dict = None,
                  urlConfig: dict = None,
+                 headers: dict = None,
                  isBinary: bool = False,
                  useSSL: bool = False,
                  shuffle: bool = False,
@@ -69,7 +70,7 @@ class Crawl:
         self.isProxy = isProxy
         self.proxyPools = proxyPools
         self.crawlConfig = crawlConfig
-        self.urlConfig = urlConfig
+        self.urlConfig = urlConfig or headers
         self.isBinary = isBinary
         self.shuffle = shuffle
 
@@ -119,10 +120,10 @@ class Crawl:
 
         if not self.urlConfig:
             urlConfig_.update(
-                {x.replace('_', '-'): self.kwargs[x] for x in self.kwargs if 65 <= ord(str(x)[0]) <= 90 and self.kwargs[x]})
+                {x.replace('_', '-'): self.kwargs[x] for x in self.kwargs if 65 <= ord(str(x)[0]) <= 90 })
 
         else:
-            urlConfig_.update({x: self.urlConfig[x] for x in self.urlConfig if 65 <= ord(str(x)[0]) <= 90 and self.urlConfig[x]})
+            urlConfig_.update({x: self.urlConfig[x] for x in self.urlConfig if 65 <= ord(str(x)[0]) <= 90 })
 
         if not self.crawlConfig:
             crawlConfig_.update({x: self.kwargs[x] for x in self.kwargs if
@@ -136,7 +137,7 @@ class Crawl:
 
         # 是否随机切换请求头，慎用！！！
         if self.shuffle:
-            self.urlConfig['User-Agent'] = random.choice(useragents.userAgents)
+            self.urlConfig['User-Agent'] = random.choice(useragent.userAgents)
 
     def run(self):
         """

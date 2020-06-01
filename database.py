@@ -200,7 +200,7 @@ class Database:
 
 
 class RedisCon(rejson.Client):
-    def __init__(self, host='localhost', port=6379, password='321', db=0, *args, **kwargs):
+    def __init__(self, host='localhost', port=6379, password='', db=0, *args, **kwargs):
         self.params = dict({'host': host, 'port': port, 'password': password, 'db': db, 'decode_responses': True},
                            **kwargs)
         super(RedisCon, self).__init__(**self.params)
