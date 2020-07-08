@@ -177,7 +177,10 @@ class Crawl:
                         self.log.error('IncompleteRead Error, Url: %s' % self.url)
                         self.html = e.partial.decode(self.crawlConfig['encoding'], errors='ignore')
                     opener.close()
-                    return self.html
+                    if self.html:
+                        return self.html
+                    else:
+                        index += 1
 
                 except http.client.BadStatusLine as e:
                     index += 1
