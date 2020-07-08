@@ -8,6 +8,7 @@ import http.client
 import urllib.error
 import urllib.parse
 
+log = log.Log()
 
 class Crawl:
     """
@@ -59,7 +60,7 @@ class Crawl:
                  isBinary: bool = False,
                  useSSL: bool = False,
                  shuffle: bool = False,
-                 log_fun: log.Log = log.Log(),
+                 is_redirect: int or bool = False,
                  **kwargs):
         self.url = url
         self.timeout = timeout
@@ -73,17 +74,15 @@ class Crawl:
         self.urlConfig = urlConfig or headers
         self.isBinary = isBinary
         self.shuffle = shuffle
-
+        self.is_redirect = is_redirect
         # 根据协议类型选择对应的代理类型
         self.protocol = url[:url.find(':')]
         self.kwargs = kwargs
 
         self.html = None
 
-        if not log_fun:
-            self.log = log.Log()
-        else:
-            self.log = log_fun
+        self.log = log
+
 
         self.parse_config()
         if useSSL:
@@ -164,6 +163,9 @@ class Crawl:
                         data = data.encode('utf8')
                         req = urllib.request.Request(self.url, headers=self.urlConfig, data=data)
                     res = opener.open(req, timeout=self.timeout)
+                    if self.is_redirect:
+                        self.html = res.geturl()
+                        return self.html
                     if res.status != 200:
                         raise Exception('status code is not 200 ! ')
                     try:

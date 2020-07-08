@@ -1,13 +1,9 @@
 import pyspark
 import py2neo
-import pymongo
 import elasticsearch as es
-import elasticsearch_dsl as esl
 from elasticsearch import helpers
-import rejson
 import os
 import json
-import time
 import re
 
 
@@ -132,33 +128,6 @@ class SparkCon:
         self.spark_con.createOrReplaceTempView(self.dbConfig['tbname'])
 
 
-class MongoCon:
-
-    def __init__(self, host='localhost', port=27017, user='admin', password='321', dbname='admin', colname='tmp',
-                 charset='utf8', dbConfig=None, use_uri=False, **kwargs):
-        self.dbname = dbname
-        self.colname = colname
-        if use_uri:
-            self.mongo_con = pymongo.MongoClient(
-                'mongodb://%(user)s:%(password)s@%(host)s:%(port)s/?authSource=%(dbname)s' % {'user': user,
-                                                                                              'password': password,
-                                                                                              'host': host,
-                                                                                              'port': port,
-                                                                                              'dbname': dbname})
-        else:
-            self.mongo_con = pymongo.MongoClient(host=host, port=port, username=user, password=password,
-                                                 authSource=dbname)
-
-    def db(self, dbname=None):
-        dbname = dbname or self.dbname or 'tmp'
-        return self.mongo_con[dbname]
-
-    def col(self, colname=None, dbname=None):
-        dbname = dbname or self.dbname or 'tmp'
-        colname = colname or self.colname
-        return self.db(dbname)[colname]
-
-
 class Neo4jCon:
 
     def __init__(self):
@@ -177,22 +146,3 @@ class Neo4jCon:
         merge (e) - [r:%(relation)s] -> (ee)
         return e
         """)
-
-
-class RedisCon(rejson.Client):
-    def __init__(self, host='localhost', port=6379, password='321', db=0, *args, **kwargs):
-        self.params = dict({'host': host, 'port': port, 'password': password, 'db': db, 'decode_responses': True},
-                           **kwargs)
-        super(RedisCon, self).__init__(**self.params)
-
-    def change_db(self, db=0):
-        self.params['db'] = db
-        self.execute_command("""select %s""" % db)
-        self.params['db'] = int(db)
-        print("""db has been changed to %s""" % self.params['db'])
-
-    def __repr__(self):
-        return "%s<%s>" % (
-            type(self).__name__, self.params
-        )
-
