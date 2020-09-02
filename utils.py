@@ -8,6 +8,7 @@ from typing import List, Dict
 import urllib.parse
 from . import crawl
 import json
+import re
 
 
 def get_local_ip():
@@ -206,3 +207,39 @@ def cprint(*char, c=None):
     except Exception as e:
         print(*char)
         return
+
+
+def bytes_to_str(bytes_array):
+    result = ''
+    i = 0
+    while i < len(bytes_array):
+        value = bytes_array[i]
+        if value >= 0:
+            char = chr(value)
+            i += 1
+        else:
+            tmp = ''
+            values = bytes_array[i:i + 3]
+            for value in values:
+                value = 256 + value
+                tmp += str(hex(value)).replace('0x', '\\x')
+            i += 3
+            char = eval(repr(tmp.encode('utf8')).replace('\\\\', '\\'))
+            char = char.decode('utf8')
+        result += char
+    return result
+
+
+def string_to_bytes(string):
+    result = []
+    for i in string:
+        num = ord(i)
+        if num < 256:
+            result.append(num)
+        if num > 255:
+            values = bytes(i, encoding='utf8')
+            values = re.findall('\\\\x[a-zA-Z0-9]{2}', str(values))
+            values = list(map(lambda x: x.replace('\\', '0'), values))
+            for value in values:
+                result.append(- (256 - int(value, base=16)))
+    return result
