@@ -1,7 +1,6 @@
 import pika
 from typing import Any
 import json
-import kafka
 
 
 

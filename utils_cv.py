@@ -24,6 +24,7 @@ class ImageTools:
     @staticmethod
     def image_pillow_to_bytes(image_input, output_type='binary'):
         buffer = io.BytesIO()
+        # image_input = image_input.convert('RGB')
         image_input.save(buffer, format='JPEG')
         image_data = buffer.getvalue()
         if output_type == 'binary':

@@ -47,6 +47,7 @@ class Crawl:
 
     def __init__(self,
                  url: str,
+                 headers: dict = None,
                  timeout: int = 5,
                  encoding: str = 'utf8',
                  maxtime: int = 5,
@@ -56,7 +57,6 @@ class Crawl:
                  proxyPools: list = None,
                  crawlConfig: dict = None,
                  urlConfig: dict = None,
-                 headers: dict = None,
                  isBinary: bool = False,
                  useSSL: bool = False,
                  shuffle: bool = False,
