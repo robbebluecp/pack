@@ -1,10 +1,7 @@
-try:
-    import pymysql
-except:
-    print('module "pymysql" is not avalable for your recent system circustance')
-    pass
+import pymysql
 import pymongo
 import rejson
+import oss2
 
 
 def check_sock(func):
@@ -38,7 +35,7 @@ class Database:
         db_config={'host': 'localhost', 'user': 'root', 'password': 'xxx', 'dbname': 'test', 'mode': 1}
     """
 
-    def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='main', tbname='log',
+    def __init__(self, host='localhost', port=3306, user='root', password='321', mode=1, dbname='mysql', tbname='db',
                  charset='utf8', db_config=None, **kwargs):
         if db_config:
             self.mode = int(db_config['mode']) if db_config.get('mode') else mode
@@ -251,3 +248,41 @@ class MongoCon:
 
 
 MysqlCon = Database
+
+
+class OssCon:
+    def __init__(self, AccessKeyId, AccessKeySecret, BucketRegion=None, BucketName=None):
+        """
+        params:
+            AccessKeyId:        oss AccessKeyId
+            AccessKeySecret:    oss AccessKeySecret
+            BucketRegion:       a url like:http://oss-cn-hongkong-internal.aliyuncs.com,
+                                hongkong means region of your bucket, if not use internal
+                                internet, remove "-internal"
+            BucketName:         your bucket name
+        """
+        self.auth = oss2.Auth(AccessKeyId, AccessKeySecret)
+        if BucketRegion and BucketName:
+            self.bucket = self.get_bucket(BucketRegion, BucketName)
+
+    def get_bucket(self, BucketRegion, BucketName):
+        """
+        function to set bucket whenever you want if BucketRegion and BucketName not set when initializing
+        """
+        return oss2.Bucket(self.auth, BucketRegion, BucketName)
+
+    def push_bytes(self, name, data):
+        """
+        params:
+            name:       file name in oss bucket
+            data:       bytes data of anything, like images, mp4 and so on
+        """
+        self.bucket.put_object(name, data)
+
+    def push_file(self, name, file_name):
+        """
+
+        upload your local file(file_name) to oss with a new "name"
+        """
+        self.bucket.put_object_from_file(name, file_name)
+

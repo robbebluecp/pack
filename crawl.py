@@ -72,6 +72,9 @@ class Crawl:
         self.proxyPools = proxyPools
         self.crawlConfig = crawlConfig
         self.urlConfig = urlConfig or headers
+        if self.urlConfig:
+            # self.urlConfig = {key[0].upper() + key[1:]: headers[key] for key in self.urlConfig}
+            self.urlConfig = {'-'.join(list(map(lambda x: x[0].upper() + x[1:], key.replace('_', '-').split('-')))): headers[key] for key in self.urlConfig}
         self.isBinary = isBinary
         self.shuffle = shuffle
         self.is_redirect = is_redirect

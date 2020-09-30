@@ -134,8 +134,8 @@ class Log:
         """
         By this func, you can indirectly receive other three params:
             call_module_name:       point to file which call log function
-            call_module_line:       point to line which call log function of "call_module_name"
-            call_func_name:         point to func which call log function of "call_module_name"
+            call_module_line:       poinrt to line which call log function of "call_module_name"
+            call_func_name:         poinrt to func which call log function of "call_module_name"
 
         In this func, message from log will be combine into the format that builtin func log needs, and for convenience as well.
         Param depth=3 means func can backtrack to 3 calls(raw_func--->>>waring[2]--->>>pre_operate[1]--->>>combine[0]) when reaching combine func.

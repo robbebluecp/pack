@@ -130,6 +130,7 @@ def google_trans(chars: str or List[str] or iter,
     else:
         return result
 
+
 def baidu_trans(app_id: str,
                 secret_key: str,
                 query: str,
@@ -209,7 +210,10 @@ def cprint(*char, c=None):
         return
 
 
-def bytes_to_str(bytes_array):
+def bytes_to_string(bytes_array):
+    """
+    byte array to string, mainly used in Java type codes
+    """
     result = ''
     i = 0
     while i < len(bytes_array):
@@ -231,6 +235,9 @@ def bytes_to_str(bytes_array):
 
 
 def string_to_bytes(string):
+    """
+    string array to byte, mainly used in Java type codes
+    """
     result = []
     for i in string:
         num = ord(i)
