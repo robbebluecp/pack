@@ -7,6 +7,7 @@ from . import useragent
 import http.client
 import urllib.error
 import urllib.parse
+import time
 
 log = log.Log()
 
@@ -61,6 +62,7 @@ class Crawl:
                  useSSL: bool = False,
                  shuffle: bool = False,
                  is_redirect: int or bool = False,
+                 auth: tuple or list = None,
                  **kwargs):
         self.url = url
         self.timeout = timeout
@@ -78,6 +80,7 @@ class Crawl:
         self.isBinary = isBinary
         self.shuffle = shuffle
         self.is_redirect = is_redirect
+        self.auth = auth
         # 根据协议类型选择对应的代理类型
         self.protocol = url[:url.find(':')]
         self.kwargs = kwargs
@@ -154,6 +157,11 @@ class Crawl:
                         proxy = self.get_proxy()
                         proxyHandler = urllib.request.ProxyHandler(proxy)
                         opener = urllib.request.build_opener(proxyHandler)
+                    elif self.auth:
+                        auth_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+                        auth_manager.add_password(None, self.url, self.auth[0], self.auth[1])
+                        auth_handler = urllib.request.HTTPBasicAuthHandler(auth_manager)
+                        opener = urllib.request.build_opener(auth_handler)
                     else:
                         opener = urllib.request.build_opener()
                     if not self.data:

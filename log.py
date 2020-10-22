@@ -2,10 +2,12 @@ import os
 from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
 from concurrent_log_handler import logging
 import sys
+import datetime, time
+from pytz import timezone, utc
 
 
 class Log:
-    def __init__(self, log_path=None, name=None):
+    def __init__(self, name=None, log_path=None, gap=8):
 
         """
         This module designed for recording log files into your DIY path with your DIY prefix name.
@@ -21,6 +23,8 @@ class Log:
 
         :param log_path:        path for record log files
         :param name:            log prefix name
+        :param gap:             timezone diff from UTC to local timezone
+                                For exmaple: if your location is Asia/Beijing, then gap should be 8 (GTM + 8)
         """
         # 0 - 50
         self.log_mapping = {'notset': logging.NOTSET,
@@ -40,6 +44,7 @@ class Log:
 
         self.init_log_path(log_path)
         self.public_name = 'z' if not name else name
+        self.gap = gap
 
         # initial log container
         self.logs = {}
@@ -92,8 +97,12 @@ class Log:
         all the codes in project.
         """
 
-        # FIXME: formmater setting dosen't work
-        base_format = logging.Formatter('【%(levelname)s】 %(asctime)s [%(process)d] \n%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        logging.Formatter.converter = self.opti_time
+        base_format = logging.Formatter('【%(levelname)s】 %(asctime)s [%(process)d] \n%(message)s',
+                                        datefmt='%Y-%m-%d %H:%M:%S')
+
+        # logging.Formatter.converter = customTime
+
         if name not in self.logs:
 
             # create logger
@@ -102,7 +111,8 @@ class Log:
 
             # create handler
             log_path = self.log_root + '/' + self.public_name + '_' + name + '.log'
-            base_handler = RotatingFileHandler(log_path, maxBytes=self.log_config[name]['maxBytes'] * 1024 * 1024, backupCount=self.log_config[name]['backupCount'])
+            base_handler = RotatingFileHandler(log_path, maxBytes=self.log_config[name]['maxBytes'] * 1024 * 1024,
+                                               backupCount=self.log_config[name]['backupCount'])
 
             # define output format
             base_handler.setFormatter(base_format)
@@ -115,7 +125,8 @@ class Log:
             if name == 'critical':
                 console_handler = logging.StreamHandler()
                 console_handler.setLevel(self.log_mapping[name])
-                console_format = logging.Formatter('【%(levelname)s】 %(asctime)s [%(process)d] \n%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+                console_format = logging.Formatter('【%(levelname)s】 %(asctime)s [%(process)d] \n%(message)s',
+                                                   datefmt='%Y-%m-%d %H:%M:%S')
                 console_handler.setFormatter(console_format)
                 logger.addHandler(console_handler)
             self.logs.update({name: logger})
@@ -226,4 +237,9 @@ class Log:
         func_name = sys._getframe().f_code.co_name
         information = self.pre_operate(*msg, func_name=func_name)
         return self.logs[func_name].info(information)
+
+    def opti_time(self, *args):
+        utc_tz = timezone('UTC')
+        new_datetime = datetime.datetime.now(tz=utc_tz) + datetime.timedelta(hours=self.gap)
+        return new_datetime.timetuple()
 
