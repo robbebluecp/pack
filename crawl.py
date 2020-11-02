@@ -63,6 +63,8 @@ class Crawl:
                  shuffle: bool = False,
                  is_redirect: int or bool = False,
                  auth: tuple or list = None,
+                 protocol: str = 'http',
+                 stop_code: int or str = None,
                  **kwargs):
         self.url = url
         self.timeout = timeout
@@ -81,7 +83,7 @@ class Crawl:
         self.shuffle = shuffle
         self.is_redirect = is_redirect
         self.auth = auth
-        # 根据协议类型选择对应的代理类型
+        self.stop_code = str(stop_code)
         self.protocol = url[:url.find(':')]
         self.kwargs = kwargs
 
@@ -198,6 +200,9 @@ class Crawl:
                     self.log.error('BadStatusLine Error, URL:%s' % self.url)
 
                 except urllib.error.URLError as e:
+                    if str(e).find(self.stop_code) >= 0:
+                        self.html = None
+                        return
                     index += 0.2
                     self.log.error('URLError, URL:%s, ERROR:%s' % (self.url, str(e)))
 

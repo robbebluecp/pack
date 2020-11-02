@@ -64,7 +64,7 @@ def stamp_to_date(time_int: int or str):
 
 
 # 当前时间转固定格式
-def date_to_char(type='s', ctime=None):
+def date_to_char(type='s', ctime=None, seperation=None):
     """
     当前时间转成年月日时分秒形式
     :return:
@@ -72,9 +72,16 @@ def date_to_char(type='s', ctime=None):
     if not ctime:
         ctime = datetime.datetime.now()
     if type == 's':
-        return ctime.strftime('%Y%m%d%H%M%S')
+        char = ctime.strftime('%Y_%m_%d_%H_%M_%S')
     elif type == 'm':
-        return ctime.strftime('%Y%m%d%H%M')
+        char = ctime.strftime('%Y_%m_%d_%H_%M')
+    if seperation is None:
+        return char.replace('_', '')
+    elif seperation == 'normal':
+        char = ctime.strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        char = ctime.strftime('%Y_%m_%d_%H_%M_%S').replace('_', seperation)
+    return char
 
 
 # 定时器
