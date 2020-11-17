@@ -12,3 +12,15 @@ pillow
 emoji
 googletrans
 pika
+oss2
+pydantic
+aiofiles
+jinja2
+fastapi
+aliyun-python-sdk-core-v3
+aliyun-python-sdk-mts
+gunicorn
+gevent
+uvicorn
+fastapi
+baidu-aip

@@ -206,7 +206,9 @@ class RedisCon(rejson.Client):
         self.params['db'] = db
         self.execute_command("""select %s""" % db)
         self.params['db'] = int(db)
-        print("""db has been changed to %s""" % self.params['db'])
+
+    def select(self, db=0):
+        return self.change_db(db)
 
     def __repr__(self):
         return "%s<%s>" % (
@@ -216,7 +218,7 @@ class RedisCon(rejson.Client):
 
 class MongoCon:
 
-    def __init__(self, host='localhost', port=27017, user='admin', password='321', auth_db='admin', dbname='tmp', colname='tmp',
+    def __init__(self, host='localhost', port=27017, user='root', password='321', auth_db='admin', dbname='tmp', colname='tmp',
                  charset='utf8', db_config=None, use_uri=False, uri=None, **kwargs):
         self.auth_db = auth_db
         self.colname = colname
@@ -262,14 +264,19 @@ class OssCon:
             BucketName:         your bucket name
         """
         self.auth = oss2.Auth(AccessKeyId, AccessKeySecret)
+        self.AccessKeyId, self.AccessKeySecret = AccessKeyId, AccessKeySecret
+        self.BucketRegion = BucketRegion
+        self.BucketName = BucketName
         if BucketRegion and BucketName:
-            self.bucket = self.get_bucket(BucketRegion, BucketName)
+            self.bucket = oss2.Bucket(self.auth, BucketRegion, BucketName)
 
-    def get_bucket(self, BucketRegion, BucketName):
+    def get_bucket(self, BucketRegion: str = None, BucketName: str = None):
         """
         function to set bucket whenever you want if BucketRegion and BucketName not set when initializing
         """
-        return oss2.Bucket(self.auth, BucketRegion, BucketName)
+        BucketRegion = BucketRegion or self.BucketRegion
+        BucketName = BucketName or self.BucketName
+        self.bucket = oss2.Bucket(self.auth, BucketRegion, BucketName)
 
     def push_bytes(self, name, data):
         """
