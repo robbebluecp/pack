@@ -75,10 +75,9 @@ class Crawl:
         self.isProxy = isProxy
         self.proxyPools = proxyPools
         self.crawlConfig = crawlConfig
-        self.urlConfig = urlConfig or headers
-        if self.urlConfig:
-            # self.urlConfig = {key[0].upper() + key[1:]: headers[key] for key in self.urlConfig}
-            self.urlConfig = {'-'.join(list(map(lambda x: x[0].upper() + x[1:], key.replace('_', '-').split('-')))): headers[key] for key in self.urlConfig}
+        if not headers:
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/55.0'}
+        self.headers = headers
         self.isBinary = isBinary
         self.shuffle = shuffle
         self.is_redirect = is_redirect
@@ -92,7 +91,6 @@ class Crawl:
         self.log = log
 
 
-        self.parse_config()
         if useSSL:
             try:
                 import ssl
@@ -113,38 +111,6 @@ class Crawl:
             self.proxyData = {}
         return self.proxyData
 
-    def parse_config(self):
-        """
-        配置处理函数，处理传进来的各种参数，以xxxConfig参数为最终形式，但不包括None和''参数
-        其中：形如User-Agent等包含“-”字符的参数名，“-”需改为“_”
-        :return(None):
-        """
-        urlConfig_ = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/55.0'}
-
-        crawlConfig_ = {'timeout': self.timeout,
-                        'encoding': self.encoding,
-                        'maxtime': self.maxtime}
-
-        if not self.urlConfig:
-            urlConfig_.update(
-                {x.replace('_', '-'): self.kwargs[x] for x in self.kwargs if 65 <= ord(str(x)[0]) <= 90 })
-
-        else:
-            urlConfig_.update({x: self.urlConfig[x] for x in self.urlConfig if 65 <= ord(str(x)[0]) <= 90 })
-
-        if not self.crawlConfig:
-            crawlConfig_.update({x: self.kwargs[x] for x in self.kwargs if
-                                 type(x) == str and self.kwargs[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
-        else:
-            crawlConfig_.update({x: self.crawlConfig[x] for x in self.crawlConfig if
-                                 type(x) == str and self.crawlConfig[x] is not None and x in ['maxtime', 'timeout', 'encoding']})
-
-        self.urlConfig, self.crawlConfig = urlConfig_, crawlConfig_
-        # self.urlConfig = list(map(lambda x:(x, self.urlConfig[x]), self.urlConfig))
-
-        # 是否随机切换请求头，慎用！！！
-        if self.shuffle:
-            self.urlConfig['User-Agent'] = random.choice(useragent.userAgents)
 
     def run(self):
         """
@@ -152,7 +118,7 @@ class Crawl:
         :return(str or None):   html，请求的html源码
         """
         index = 0
-        while index < self.crawlConfig['maxtime']:
+        while index < self.maxtime:
             try:
                 try:
                     if self.isProxy or self.proxyPools:
@@ -167,14 +133,14 @@ class Crawl:
                     else:
                         opener = urllib.request.build_opener()
                     if not self.data:
-                        req = urllib.request.Request(self.url, headers=self.urlConfig)
+                        req = urllib.request.Request(self.url, headers=self.headers)
                     else:
                         if self.dataType == 'json':
                             data = json.dumps(self.data)
                         else:
                             data = urllib.parse.urlencode(self.data)
                         data = data.encode('utf8')
-                        req = urllib.request.Request(self.url, headers=self.urlConfig, data=data)
+                        req = urllib.request.Request(self.url, headers=self.headers, data=data)
                     res = opener.open(req, timeout=self.timeout)
                     if self.is_redirect:
                         self.html = res.geturl()
@@ -185,10 +151,10 @@ class Crawl:
                         if self.isBinary:
                             self.html = res.read()
                         else:
-                            self.html = res.read().decode(self.crawlConfig['encoding'], errors='ignore')
+                            self.html = res.read().decode(self.encoding, errors='ignore')
                     except http.client.IncompleteRead as e:
                         self.log.error('IncompleteRead Error, Url: %s' % self.url)
-                        self.html = e.partial.decode(self.crawlConfig['encoding'], errors='ignore')
+                        self.html = e.partial.decode(self.encoding, errors='ignore')
                     opener.close()
                     if self.html:
                         return self.html
@@ -212,7 +178,7 @@ class Crawl:
             except Exception as e:
                 index += 1
                 self.log.critical('...' + str(e))
-        self.log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.crawlConfig['maxtime'], self.url))
+        self.log.critical('Index is over than %s times,crawl fail, URL;%s' % (self.maxtime, self.url))
         self.html = None
 
 
