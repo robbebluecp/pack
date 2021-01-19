@@ -135,11 +135,14 @@ class Crawl:
                     if not self.data:
                         req = urllib.request.Request(self.url, headers=self.headers)
                     else:
+                        if self.dataType == 'bytes':
+                            data = self.data
                         if self.dataType == 'json':
                             data = json.dumps(self.data)
-                        else:
+                            data = data.encode('utf8')
+                        elif self.dataType == 'str':
                             data = urllib.parse.urlencode(self.data)
-                        data = data.encode('utf8')
+                            data = data.encode('utf8')
                         req = urllib.request.Request(self.url, headers=self.headers, data=data)
                     res = opener.open(req, timeout=self.timeout)
                     if self.is_redirect:
