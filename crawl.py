@@ -99,6 +99,10 @@ class Crawl:
                 print('Can not import ssl, check if successfully install python, Error: --->>>  ', str(e))
         self.run()
 
+    @property
+    def json(self):
+        return json.loads(self.html)
+
     def get_proxy(self):
         """
         获取代理，返回字典类型，每一次请求更换一次代理
