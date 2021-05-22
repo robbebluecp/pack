@@ -3,7 +3,7 @@ import random
 import json
 from . import log
 from . import useragent
-
+import gzip
 import http.client
 import urllib.error
 import urllib.parse
@@ -75,9 +75,7 @@ class Crawl:
         self.isProxy = isProxy
         self.proxyPools = proxyPools
         self.crawlConfig = crawlConfig
-        if not headers:
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:56.0) Gecko/20100101 Firefox/55.0'}
-        self.headers = headers
+        self.headers = headers or {}
         self.isBinary = isBinary
         self.shuffle = shuffle
         self.is_redirect = is_redirect
@@ -98,10 +96,6 @@ class Crawl:
             except Exception as e:
                 print('Can not import ssl, check if successfully install python, Error: --->>>  ', str(e))
         self.run()
-
-    @property
-    def json(self):
-        return json.loads(self.html)
 
     def get_proxy(self):
         """
@@ -158,7 +152,17 @@ class Crawl:
                         if self.isBinary:
                             self.html = res.read()
                         else:
-                            self.html = res.read().decode(self.encoding, errors='ignore')
+                            self.html = res.read()
+                            if self.headers.get('Accept-Encoding', '').find('gzip') >= 0 or self.headers.get('accept-encoding', '').find('gzip') >= 0:
+                                try:
+                                    self.html = gzip.decompress(self.html)
+                                except OSError as e:
+                                    index = self.maxtime
+                                except Exception as e:
+                                    self.log.error('Url: %s, Error: %s' % (self.url, str(e)))
+                                    index += 1
+                                    continue
+                            self.html = self.html.decode(self.encoding, errors='ignore')
                     except http.client.IncompleteRead as e:
                         self.log.error('IncompleteRead Error, Url: %s' % self.url)
                         self.html = e.partial.decode(self.encoding, errors='ignore')
