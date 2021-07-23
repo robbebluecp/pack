@@ -9,6 +9,8 @@ import urllib.parse
 from . import crawl
 import json
 import re
+import base64
+from Crypto.Cipher import AES
 
 
 def get_local_ip():
@@ -64,7 +66,7 @@ def stamp_to_date(time_int: int or str):
 
 
 # 当前时间转固定格式
-def date_to_char(type='s', ctime=None):
+def date_to_char(type='s', ctime=None, seperation=None):
     """
     当前时间转成年月日时分秒形式
     :return:
@@ -72,9 +74,16 @@ def date_to_char(type='s', ctime=None):
     if not ctime:
         ctime = datetime.datetime.now()
     if type == 's':
-        return ctime.strftime('%Y%m%d%H%M%S')
+        char = ctime.strftime('%Y_%m_%d_%H_%M_%S')
     elif type == 'm':
-        return ctime.strftime('%Y%m%d%H%M')
+        char = ctime.strftime('%Y_%m_%d_%H_%M')
+    if seperation is None:
+        return char.replace('_', '')
+    elif seperation == 'normal':
+        char = ctime.strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        char = ctime.strftime('%Y_%m_%d_%H_%M_%S').replace('_', seperation)
+    return char
 
 
 # 定时器
@@ -109,10 +118,10 @@ def emoji_transfer(chars: str or List[str]) -> str or List[str]:
 
 
 def google_trans(chars: str or List[str] or iter,
-                    translator: Translator = None,
-                    return_type: str = 'list',
-                    dest='en',
-                    service_urls=['translate.google.cn']) -> List[str]:
+                 translator: Translator = None,
+                 return_type: str = 'list',
+                 dest='en',
+                 service_urls=['translate.google.cn']) -> List[str]:
     """
     谷歌翻译
     :param chars:
@@ -129,6 +138,7 @@ def google_trans(chars: str or List[str] or iter,
         return list(map(lambda x: x.text, result))
     else:
         return result
+
 
 def baidu_trans(app_id: str,
                 secret_key: str,
@@ -209,7 +219,10 @@ def cprint(*char, c=None):
         return
 
 
-def bytes_to_str(bytes_array):
+def bytes_to_string(bytes_array):
+    """
+    byte array to string, mainly used in Java type codes
+    """
     result = ''
     i = 0
     while i < len(bytes_array):
@@ -231,6 +244,9 @@ def bytes_to_str(bytes_array):
 
 
 def string_to_bytes(string):
+    """
+    string array to byte, mainly used in Java type codes
+    """
     result = []
     for i in string:
         num = ord(i)
@@ -243,6 +259,74 @@ def string_to_bytes(string):
             for value in values:
                 result.append(- (256 - int(value, base=16)))
     return result
+
+
+class Encryption:
+    """
+    加密模块
+    """
+
+    @staticmethod
+    def md5(char: str):
+        char = str(char)
+        m = md5()
+        m.update(char.encode('utf8'))
+        return m.hexdigest()
+
+    @staticmethod
+    def sha1(char: str):
+        char = str(char)
+        m = sha1()
+        m.update(char.encode('utf8'))
+        return m.hexdigest()
+
+    class AESdiy:
+
+        @staticmethod
+        def aes_padding(text):
+            bs = AES.block_size
+            length = len(text)
+            bytes_length = len(bytes(text, encoding='utf-8'))
+            aes_padding_size = length if (bytes_length == length) else bytes_length
+            aes_padding_l = bs - aes_padding_size % bs
+            aes_padding_text = chr(aes_padding_l) * aes_padding_l
+            return text + aes_padding_text
+
+        @staticmethod
+        def aes_unpadding(text):
+            length = len(text)
+            aes_unpadding_l = ord(text[length - 1])
+            return text[0:length - aes_unpadding_l]
+
+        @staticmethod
+        def aes_encrypt(salt, content):
+            ll = len(salt)
+            assert ll <= 16, "Length must less equal than 16 !"
+            for i in range(16 - ll):
+                salt += '0'
+            salt_bytes = bytes(salt, encoding='utf-8')
+            cipher = AES.new(salt_bytes, AES.MODE_CBC, salt_bytes)
+            content_aes_padding = Encryption.AESdiy.aes_padding(content)
+            aes_encrypt_bytes = cipher.encrypt(bytes(content_aes_padding, encoding='utf-8'))
+            aes_encrypt_char = str(base64.b64encode(aes_encrypt_bytes), encoding='utf-8')
+            return aes_encrypt_char
+
+        @staticmethod
+        def aes_decrypt(salt, content):
+            ll = len(salt)
+            assert ll <= 16, "Length must less equal than 16 !"
+            for i in range(16 - ll):
+                salt += '0'
+            salt_bytes = bytes(salt, encoding='utf-8')
+            cipher = AES.new(salt_bytes, AES.MODE_CBC, salt_bytes)
+            aes_encrypt_bytes = base64.b64decode(content)
+            aes_decrypt_bytes = cipher.decrypt(aes_encrypt_bytes)
+            aes_decrypt_char = str(aes_decrypt_bytes, encoding='utf-8')
+            aes_decrypt_char = Encryption.AESdiy.aes_unpadding(aes_decrypt_char)
+            return aes_decrypt_char
+
+
+
 
 
 print('dev2 forward test %s' % datetime.datetime.now())
