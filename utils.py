@@ -243,3 +243,6 @@ def string_to_bytes(string):
             for value in values:
                 result.append(- (256 - int(value, base=16)))
     return result
+
+
+print('dev2 forward test %s' % datetime.datetime.now())
