@@ -326,3 +326,7 @@ class Encryption:
             return aes_decrypt_char
 
 
+
+
+
+print('dev2 forward test %s' % datetime.datetime.now())
